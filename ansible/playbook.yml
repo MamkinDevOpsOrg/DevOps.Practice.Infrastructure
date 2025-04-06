@@ -104,12 +104,6 @@
         groups: docker
         append: yes
 
-    - name: Add current user to docker group
-      user:
-        name: '{{ ansible_user }}'
-        groups: docker
-        append: yes
-
     - name: Docker login to ECR as ubuntu
       become: true
       become_user: ubuntu
