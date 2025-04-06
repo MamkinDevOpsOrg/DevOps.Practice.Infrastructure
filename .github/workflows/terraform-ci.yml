@@ -75,3 +75,42 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
+
+  provision:
+    name: Ansible Provision via Dynamic Inventory
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: apply
+
+    env:
+      AWS_REGION: us-west-2
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Ansible and dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y ansible python3-boto3 unzip curl
+          ansible-galaxy collection install amazon.aws
+
+      - name: Write SSH private key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY_PEM }}" > ansible/devops_practice.pem
+          chmod 400 ansible/devops_practice.pem
+
+      - name: Run Ansible Playbook with Dynamic Inventory
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ansible-playbook ansible/playbook.yml \
+            -i ansible/aws_ec2.yaml \
+            --private-key ansible/devops_practice.pem \
+            --extra-vars "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID}"
