@@ -109,3 +109,11 @@
         aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
       args:
         executable: /bin/bash
+
+    - name: Debug whoami on EC2
+      command: whoami
+      register: whoami_out
+
+    - name: Show current user
+      debug:
+        var: whoami_out.stdout
