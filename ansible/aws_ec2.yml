@@ -28,3 +28,4 @@ keyed_groups:
 # It will now be equal to public_ip_address
 compose:
   ansible_host: public_ip_address
+  ansible_user: ubuntu
