@@ -97,3 +97,15 @@
     - name: Show AWS CLI version
       debug:
         var: aws_version_output.stdout
+
+    - name: Add current user to docker group
+      user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: yes
+
+    - name: Login to ECR
+      shell: |
+        aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
+      args:
+        executable: /bin/bash
