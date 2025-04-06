@@ -104,9 +104,18 @@
         groups: docker
         append: yes
 
-    - name: Login to ECR
+    - name: Add current user to docker group
+      user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: yes
+
+    - name: Docker login to ECR as ubuntu
+      become: true
+      become_user: ubuntu
       shell: |
-        aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
+        aws ecr get-login-password --region {{ region }} \
+        | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
       args:
         executable: /bin/bash
 
