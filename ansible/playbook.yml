@@ -1,4 +1,4 @@
-- hosts: app
+- hosts: tag_app_server
   become: true
   tasks:
     - name: Remove conflicting Docker packages
