@@ -10,7 +10,7 @@ regions:
 # - Only in the "running" state
 filters:
   tag:Name: app_server
-  # instance-state-name: running
+  instance-state-name: running
 
 # Use EC2 public IP as hostname (ansible_host)
 hostnames:
