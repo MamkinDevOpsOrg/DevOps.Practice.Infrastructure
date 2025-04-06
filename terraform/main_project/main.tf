@@ -16,16 +16,6 @@ provider "aws" {
 # Get current AWS Account ID
 data "aws_caller_identity" "current" {}
 
-# Load user_data from local file
-data "template_file" "user_data" {
-  template = file("${path.module}/bash_scripts/user_data.sh")
-
-  vars = {
-    account_id = data.aws_caller_identity.current.account_id
-    region     = var.region
-  }
-}
-
 # IAM Role for EC2 to access ECR
 resource "aws_iam_role" "ec2_role" {
   name = "ec2-ecr-access-role"
@@ -85,13 +75,12 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
-# EC2 instance
+# EC2
 resource "aws_instance" "app_server" {
-  ami                    = var.machine_image
-  instance_type          = var.instance_type
-  key_name               = var.key_pair_name_for_ssh
-  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
-  user_data              = data.template_file.user_data.rendered
+  ami                  = var.machine_image
+  instance_type        = var.instance_type
+  key_name             = var.key_pair_name_for_ssh
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   tags = {
