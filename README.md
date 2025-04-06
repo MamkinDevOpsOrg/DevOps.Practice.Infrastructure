@@ -58,6 +58,18 @@ Make sure the following are installed on your local machine:
 
 - AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
+## 4.1 Install Ansible (Optional for Local Provisioning)
+
+> This step is optional. Ansible is used for configuring EC2 instances (e.g., install Docker, AWS CLI) after provisioning.
+
+If you run **Linux or WSL**, you can install Ansible directly:
+
+```bash
+sudo apt update && sudo apt install ansible
+```
+
+For detailed instructions, see [`ansible/README.md`](./ansible/README.md)
+
 ## 5. Configure AWS Credentials
 
 You need an IAM user with the following minimum permissions:
