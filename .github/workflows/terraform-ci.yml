@@ -119,4 +119,5 @@ jobs:
           ansible-playbook ansible/playbook.yml \
             -i ansible/aws_ec2.yml \
             --private-key ansible/devops_practice.pem \
-            --extra-vars "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID}"
+            --extra-vars "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID}" \
+            --ssh-extra-args="-o StrictHostKeyChecking=no"
