@@ -109,6 +109,10 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY_PEM }}" > ansible/devops_practice.pem
           chmod 400 ansible/devops_practice.pem
 
+      - name: Debug inventory from plugin
+        run: |
+          ansible-inventory -i ansible/aws_ec2.yml --graph
+
       - name: Run Ansible Playbook with Dynamic Inventory
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
