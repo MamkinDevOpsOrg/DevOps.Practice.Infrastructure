@@ -25,6 +25,7 @@ We use **Docker** to run Ansible in an isolated Ubuntu-based container environme
 
 ```
 ansible/
+├── aws_ec2.yml              # Сonfig for inventory plugin amazon.aws.aws_ec2 (to dynamically generate inventory from AWS for Github Actions)
 ├── Dockerfile               # Defines Ansible environment in Ubuntu container
 ├── entrypoint.sh            # Entrypoint that handles key permissions and launches Ansible
 ├── inventory.ini            # Static inventory with EC2 public IP
