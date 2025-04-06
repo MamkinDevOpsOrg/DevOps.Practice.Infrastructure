@@ -109,13 +109,6 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY_PEM }}" > ansible/devops_practice.pem
           chmod 400 ansible/devops_practice.pem
 
-      - name: Debug private key file
-        run: |
-          echo "File permissions:"
-          ls -l ansible/devops_practice.pem
-          echo "First few lines of key:"
-          head -n 2 ansible/devops_practice.pem
-
       - name: Debug inventory from plugin
         run: |
           ansible-inventory -i ansible/aws_ec2.yml --graph
