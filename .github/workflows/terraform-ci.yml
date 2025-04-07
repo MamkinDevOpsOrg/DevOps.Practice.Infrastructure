@@ -13,8 +13,6 @@ permissions:
 env:
   TF_WORKING_DIR: terraform/main_project
   AWS_REGION: us-west-2
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   validate_plan:
@@ -81,9 +79,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     needs: apply
-
-    env:
-      AWS_REGION: us-west-2
 
     steps:
       - name: Checkout repo
