@@ -82,9 +82,6 @@ jobs:
     if: github.event_name == 'push'
     needs: apply
 
-    env:
-      AWS_REGION: us-west-2
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
