@@ -101,6 +101,9 @@ jobs:
           pip install ansible boto3 botocore
           ansible-galaxy collection install amazon.aws
 
+      - name: List installed Ansible collections
+        run: ansible-galaxy collection list
+
       - name: Get EC2 Instance ID
         id: get_instance_id
         run: |
