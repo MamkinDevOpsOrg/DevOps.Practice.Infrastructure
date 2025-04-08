@@ -1,4 +1,4 @@
-- name: Deploy app to EC2 via SSM
+- name: Set up EC2 instance and run application
   hosts: localhost
   connection: local
   gather_facts: false
@@ -21,7 +21,7 @@
       - docker run -d --name app1 -p 80:8000 {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
 
   tasks:
-    - name: Send RunCommand via AWS CLI (clean JSON version)
+    - name: Send RunCommand via AWS CLI
       shell: >
         aws ssm send-command
         --region {{ region }}
