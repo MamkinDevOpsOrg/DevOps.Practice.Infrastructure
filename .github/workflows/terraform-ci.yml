@@ -117,6 +117,11 @@ jobs:
         run: |
           ansible-inventory -i ansible/aws_ec2.yml --graph
 
+      - name: Test SSH to Bastion
+        run: |
+          BASTION_IP=$(terraform -chdir=terraform/main_project output -raw bastion_public_ip)
+          ssh -o StrictHostKeyChecking=no -i ansible/devops_practice.pem ubuntu@$BASTION_IP 'echo 🟢 SSH to Bastion works'
+
       - name: Run Ansible Playbook with Dynamic Inventory
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
