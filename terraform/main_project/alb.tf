@@ -47,4 +47,6 @@ module "alb" {
     Environment = "dev"
     Project     = "app1"
   }
+
+  enable_deletion_protection = false
 }

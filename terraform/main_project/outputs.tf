@@ -13,3 +13,7 @@ output "alb_dns_name" {
   value       = module.alb.dns_name
 }
 
+output "nat_gateway_id" {
+  description = "NAT Gateway ID"
+  value       = module.vpc.natgw_ids[0]
+}
