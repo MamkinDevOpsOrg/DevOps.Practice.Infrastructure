@@ -1,20 +1,14 @@
-# Use the inventory plugin from the amazon.aws collection
 plugin: amazon.aws.aws_ec2
 
-# Regions where to find EC2 instances
 regions:
   - us-west-2
 
-# Filter EC2 instances:
-# - Only those with the tag Name = app_server
-# - Only in the "running" state
 filters:
   tag:Name: app_server
   instance-state-name: running
 
-# Use EC2 public IP as hostname (ansible_host)
 hostnames:
-  - public-ip-address
+  - private-ip-address
 
 # Don't crash if no matching instances are found
 strict: False
@@ -24,8 +18,8 @@ keyed_groups:
   - key: tags.Name
     prefix: tag
 
-# Override ansible host for SSH connection
-# It will now be equal to public_ip_address
 compose:
-  ansible_host: public_ip_address
+  ansible_host: private_ip_address
   ansible_user: ubuntu
+  ansible_ssh_common_args: >
+    -o ProxyCommand="ssh -i {{ playbook_dir }}/devops_practice.pem -o StrictHostKeyChecking=no -W %h:%p ubuntu@{{ bastion_ip }}"

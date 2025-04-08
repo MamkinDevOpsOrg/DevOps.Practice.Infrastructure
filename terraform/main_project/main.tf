@@ -44,7 +44,7 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-# EC2
+# EC2 app server
 resource "aws_instance" "app_server" {
   ami                    = var.machine_image
   instance_type          = var.instance_type
@@ -55,5 +55,19 @@ resource "aws_instance" "app_server" {
 
   tags = {
     Name = var.instance_name
+  }
+}
+
+# EC2 bastion host
+resource "aws_instance" "bastion_host" {
+  ami                         = var.machine_image
+  instance_type               = "t2.micro"
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  key_name                    = var.key_pair_name_for_ssh
+  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
+
+  tags = {
+    Name = "bastion_host"
   }
 }
