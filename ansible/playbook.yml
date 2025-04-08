@@ -12,11 +12,13 @@
 
   tasks:
     - name: Send RunCommand via AWS CLI
-      shell: |
-        aws ssm send-command \
-          --region {{ region }} \
-          --instance-ids {{ instance_id }} \
-          --document-name "AWS-RunShellScript" \
-          --comment "Ansible SSM deploy" \
-          --parameters '{"commands": [{{ ssm_commands.splitlines() | map('quote') | join(', ') }}]}' \
-          --output text
+      shell: >
+        aws ssm send-command
+        --region {{ region }}
+        --instance-ids {{ instance_id }}
+        --document-name "AWS-RunShellScript"
+        --comment "Ansible SSM deploy"
+        --parameters '{"commands": [{{ ssm_commands.splitlines() | map('quote') | join(', ') }}]}'
+        --output text
+      args:
+        executable: /bin/bash
