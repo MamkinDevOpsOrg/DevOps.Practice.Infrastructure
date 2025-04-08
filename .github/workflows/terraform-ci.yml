@@ -99,7 +99,7 @@ jobs:
           sudo apt install -y python3 python3-pip unzip curl
           python3 -m pip install --upgrade pip
           pip install ansible boto3 botocore
-          ansible-galaxy collection install amazon.
+          ansible-galaxy collection install amazon.aws
 
       - name: List installed Ansible collections
         run: ansible-galaxy collection list
