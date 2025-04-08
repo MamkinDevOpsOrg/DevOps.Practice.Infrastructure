@@ -60,6 +60,8 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    outputs:
+      alb_dns_name: ${{ steps.alb_output.outputs.alb_dns_name }}
 
     steps:
       - name: Checkout code
@@ -76,12 +78,16 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
 
-      - name: Output ALB DNS
+      - name: Output link
         id: alb_output
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          ALB_DNS=$(terraform output -raw alb_dns_name)
-          echo "alb_dns_name=$ALB_DNS" >> "$GITHUB_OUTPUT"
+          if terraform output -raw alb_dns_name >/dev/null 2>&1; then
+            ALB_DNS=$(terraform output -raw alb_dns_name)
+            echo "alb_dns_name=$ALB_DNS" >> "$GITHUB_OUTPUT"
+          else
+            echo "alb_dns_name=" >> "$GITHUB_OUTPUT"
+          fi
 
   provision:
     name: Ansible Provision via AWS SSM
@@ -129,7 +135,8 @@ jobs:
       - name: Wait before finishing job (give app time to start)
         run: sleep 60
 
-      - name: Show ALB DNS Name
+      - name: Show link to application
         run: |
           echo "✅ Link to application:"
           echo "${{ needs.apply.outputs.alb_dns_name }}"
+          echo "::notice title=LINK::${{ needs.apply.outputs.alb_dns_name }}"
