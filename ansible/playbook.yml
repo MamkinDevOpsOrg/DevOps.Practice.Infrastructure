@@ -17,7 +17,7 @@
 
   tasks:
     - name: Run provisioning commands via SSM
-      amazon.aws.aws_ssm:
+      amazon.aws.ssm:
         targets:
           - Key: 'InstanceIds'
             Values: ['{{ instance_id }}']
