@@ -7,9 +7,8 @@
     region: '{{ region }}'
     account_id: '{{ account_id }}'
     instance_id: '{{ instance_id }}'
-
-  ssm_commands: |
-    echo "Hello from SSM on EC2"
+    ssm_commands: |
+      echo "Hello from SSM on EC2"
 
   tasks:
     - name: Send RunCommand via AWS CLI
