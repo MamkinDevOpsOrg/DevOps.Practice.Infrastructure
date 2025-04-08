@@ -115,8 +115,6 @@ jobs:
           echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
 
       - name: Run Ansible Playbook via SSM
-        env:
-          ANSIBLE_COLLECTIONS_PATHS: ~/.ansible/collections:/usr/share/ansible/collections:/home/runner/.local/lib/python3.12/site-packages/ansible_collections
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 

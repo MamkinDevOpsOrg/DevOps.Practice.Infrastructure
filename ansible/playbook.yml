@@ -1,35 +1,33 @@
-- hosts: localhost
+- name: Deploy app to EC2 via SSM
+  hosts: localhost
   connection: local
-  gather_facts:
-  collections:
-    - community.aws
+  gather_facts: false
+
   vars:
-    ssm_commands:
-      - 'apt update -y'
-      - 'apt install -y docker.io unzip curl'
-      - 'systemctl enable docker'
-      - 'systemctl start docker'
-      - 'curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip'
-      - 'unzip -o awscliv2.zip'
-      - './aws/install'
-      - 'aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com'
-      - 'docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest'
-      - 'docker rm -f app1 || true'
-      - 'docker run -d --name app1 -p 80:8000 {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest'
+    region: '{{ region }}'
+    account_id: '{{ account_id }}'
+    instance_id: '{{ instance_id }}'
+
+    ssm_commands: |
+      apt update -y
+      apt install -y docker.io unzip curl
+      systemctl enable docker
+      systemctl start docker
+      curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+      unzip -o awscliv2.zip
+      ./aws/install
+      aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
+      docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
+      docker rm -f app1 || true
+      docker run -d --name app1 -p 80:8000 {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
 
   tasks:
-    - name: Run provisioning commands via SSM
-      community.aws.aws_ssm:
-        targets:
-          - Key: 'InstanceIds'
-            Values: ['{{ instance_id }}']
-        document_name: 'AWS-RunShellScript'
-        parameters:
-          commands: '{{ ssm_commands }}'
-        timeout_seconds: 600
-        comment: 'Run app deploy sequence from CI'
-      register: ssm_result
-
-    - name: Show raw command result (for debug)
-      debug:
-        var: ssm_result
+    - name: Send RunCommand via AWS CLI
+      shell: |
+        aws ssm send-command \
+          --region {{ region }} \
+          --instance-ids {{ instance_id }} \
+          --document-name "AWS-RunShellScript" \
+          --comment "Ansible SSM deploy" \
+          --parameters '{"commands":["{{ ssm_commands | replace("\n", "\",\"") }}"]}' \
+          --output text
