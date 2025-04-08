@@ -101,9 +101,6 @@ jobs:
           pip install ansible boto3
           ansible-galaxy collection install amazon.aws
 
-      # - name: List installed Ansible collections
-      #   run: ansible-galaxy collection list
-
       - name: Get EC2 Instance ID
         id: get_instance_id
         run: |
@@ -121,3 +118,6 @@ jobs:
           ansible-playbook ansible/playbook.yml \
             -i localhost, \
             -e "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} instance_id=${{ steps.get_instance_id.outputs.instance_id }}"
+
+      - name: Wait before finishing job (give app time to start)
+        run: sleep 60
