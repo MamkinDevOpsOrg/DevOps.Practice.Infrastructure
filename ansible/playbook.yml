@@ -7,18 +7,18 @@
     region: '{{ region }}'
     account_id: '{{ account_id }}'
     instance_id: '{{ instance_id }}'
-    ssm_commands: |
-      echo "Hello from SSM on EC2"
+    ssm_commands:
+      - echo "Hello from SSM on EC2"
 
   tasks:
-    - name: Send RunCommand via AWS CLI
+    - name: Send RunCommand via AWS CLI (clean JSON version)
       shell: >
         aws ssm send-command
         --region {{ region }}
         --instance-ids {{ instance_id }}
         --document-name "AWS-RunShellScript"
         --comment "Ansible SSM deploy"
-        --parameters '{"commands": [{{ ssm_commands.splitlines() | map('quote') | join(', ') }}]}'
+        --parameters '{{ {"commands": ssm_commands} | to_json }}'
         --output text
       args:
         executable: /bin/bash
