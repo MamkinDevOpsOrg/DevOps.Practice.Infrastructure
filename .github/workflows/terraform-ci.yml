@@ -76,6 +76,13 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
 
+      - name: Output ALB DNS
+        id: alb_output
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          ALB_DNS=$(terraform output -raw alb_dns_name)
+          echo "alb_dns_name=$ALB_DNS" >> "$GITHUB_OUTPUT"
+
   provision:
     name: Ansible Provision via AWS SSM
     runs-on: ubuntu-latest
@@ -121,3 +128,8 @@ jobs:
 
       - name: Wait before finishing job (give app time to start)
         run: sleep 60
+
+      - name: Show ALB DNS Name
+        run: |
+          echo "✅ Link to application:"
+          echo "${{ needs.apply.outputs.alb_dns_name }}"
