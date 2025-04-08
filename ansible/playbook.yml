@@ -1,150 +1,33 @@
-- hosts: tag_app_server
-  become: true
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ssm_commands:
+      - 'apt update -y'
+      - 'apt install -y docker.io unzip curl'
+      - 'systemctl enable docker'
+      - 'systemctl start docker'
+      - 'curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip'
+      - 'unzip -o awscliv2.zip'
+      - './aws/install'
+      - 'aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com'
+      - 'docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest'
+      - 'docker rm -f app1 || true'
+      - 'docker run -d --name app1 -p 80:8000 {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest'
+
   tasks:
-    - name: Remove conflicting Docker packages
-      apt:
-        name: '{{ item }}'
-        state: absent
-        purge: true
-      loop:
-        - docker.io
-        - docker-doc
-        - docker-compose
-        - docker-compose-v2
-        - podman-docker
-        - containerd
-        - runc
+    - name: Run provisioning commands via SSM
+      amazon.aws.aws_ssm:
+        targets:
+          - Key: 'InstanceIds'
+            Values: ['{{ instance_id }}']
+        document_name: 'AWS-RunShellScript'
+        parameters:
+          commands: '{{ ssm_commands }}'
+        timeout_seconds: 600
+        comment: 'Run app deploy sequence from CI'
+      register: ssm_result
 
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-
-    - name: Install dependencies for Docker repo
-      apt:
-        name:
-          - ca-certificates
-          - curl
-          - gnupg
-          - lsb-release
-        state: present
-
-    - name: Create keyrings directory
-      file:
-        path: /etc/apt/keyrings
-        state: directory
-        mode: '0755'
-
-    - name: Download Docker GPG key
-      get_url:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /etc/apt/keyrings/docker.asc
-        mode: '0644'
-
-    - name: Add Docker APT repository
-      copy:
-        dest: /etc/apt/sources.list.d/docker.list
-        content: |
-          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu focal stable
-
-    - name: Update apt cache (after adding Docker repo)
-      apt:
-        update_cache: yes
-
-    - name: Install Docker packages
-      apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-buildx-plugin
-          - docker-compose-plugin
-        state: present
-
-    - name: Ensure Docker is enabled and running
-      service:
-        name: docker
-        state: started
-        enabled: true
-
-    - name: Install dependencies for AWS CLI
-      apt:
-        name:
-          - unzip
-          - curl
-        state: present
-        update_cache: yes
-
-    - name: Download AWS CLI v2 installer
-      get_url:
-        url: 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip'
-        dest: '/tmp/awscliv2.zip'
-
-    - name: Unzip AWS CLI installer
-      unarchive:
-        src: '/tmp/awscliv2.zip'
-        dest: '/tmp'
-        remote_src: yes
-
-    - name: Install AWS CLI
-      command: '/tmp/aws/install'
-      args:
-        creates: /usr/local/bin/aws
-
-    - name: Check AWS CLI version
-      command: 'aws --version'
-      register: aws_version_output
-
-    - name: Show AWS CLI version
+    - name: Show raw command result (for debug)
       debug:
-        var: aws_version_output.stdout
-
-    - name: Add current user to docker group
-      user:
-        name: '{{ ansible_user }}'
-        groups: docker
-        append: yes
-
-    - name: Docker login to ECR as ubuntu
-      become: true
-      become_user: ubuntu
-      shell: |
-        aws ecr get-login-password --region {{ region }} \
-        | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
-      args:
-        executable: /bin/bash
-
-    - name: Pull app image from ECR
-      become: true
-      become_user: ubuntu
-      shell: |
-        docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
-      args:
-        executable: /bin/bash
-
-    - name: Ensure previous app1 container is removed (if any)
-      become: true
-      become_user: ubuntu
-      shell: |
-        docker rm -f app1 || true
-      args:
-        executable: /bin/bash
-
-    - name: Run app1 container
-      become: true
-      become_user: ubuntu
-      shell: |
-        docker run -d \
-          --name app1 \
-          -p 80:8000 \
-          {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
-      args:
-        executable: /bin/bash
-
-    # Debug steps - ucomment if you want to see 'whoami' output
-    # - name: Debug whoami on EC2
-    #   command: whoami
-    #   register: whoami_out
-
-    # - name: Show current user
-    #   debug:
-    #     var: whoami_out.stdout
+        var: ssm_result

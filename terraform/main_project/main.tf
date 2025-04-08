@@ -32,11 +32,18 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
-# Attach AmazonEC2ContainerRegistryReadOnly policy
+# Attach AmazonEC2ContainerRegistryReadOnly policy to EC2 role
 resource "aws_iam_role_policy_attachment" "ecr_access" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
+# Attach AmazonSSMManagedInstanceCore policy to EC2 role
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 
 # Instance profile for EC2
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
@@ -55,19 +62,5 @@ resource "aws_instance" "app_server" {
 
   tags = {
     Name = var.instance_name
-  }
-}
-
-# EC2 bastion host
-resource "aws_instance" "bastion_host" {
-  ami                         = var.machine_image
-  instance_type               = "t2.micro"
-  subnet_id                   = module.vpc.public_subnets[0]
-  associate_public_ip_address = true
-  key_name                    = var.key_pair_name_for_ssh
-  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
-
-  tags = {
-    Name = "bastion_host"
   }
 }
