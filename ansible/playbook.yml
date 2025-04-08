@@ -2,7 +2,7 @@
   connection: local
   gather_facts:
   collections:
-    - amazon.aws
+    - community.aws
   vars:
     ssm_commands:
       - 'apt update -y'
@@ -19,7 +19,7 @@
 
   tasks:
     - name: Run provisioning commands via SSM
-      amazon.aws.aws_ssm:
+      community.aws.aws_ssm:
         targets:
           - Key: 'InstanceIds'
             Values: ['{{ instance_id }}']
