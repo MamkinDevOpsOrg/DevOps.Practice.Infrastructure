@@ -17,8 +17,3 @@ output "nat_gateway_id" {
   description = "NAT Gateway ID"
   value       = module.vpc.natgw_ids[0]
 }
-
-output "bastion_public_ip" {
-  description = "Public IP of the bastion host"
-  value       = aws_instance.bastion_host.public_ip
-}

@@ -77,7 +77,7 @@ jobs:
         run: terraform apply -auto-approve
 
   provision:
-    name: Ansible Provision via Dynamic Inventory
+    name: Ansible Provision via AWS SSM
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     needs: apply
@@ -85,13 +85,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
 
       - name: Setup AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -108,28 +101,20 @@ jobs:
           pip install ansible boto3 botocore
           ansible-galaxy collection install amazon.aws
 
-      - name: Write SSH private key
+      - name: Get EC2 Instance ID
+        id: get_instance_id
         run: |
-          echo "${{ secrets.EC2_SSH_KEY_PEM }}" > ansible/devops_practice.pem
-          chmod 400 ansible/devops_practice.pem
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=app_server" \
+                      "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Debug inventory from plugin
-        run: |
-          ansible-inventory -i ansible/aws_ec2.yml --graph
-
-      - name: Test SSH to Bastion
-        run: |
-          BASTION_IP=$(terraform -chdir=terraform/main_project output -raw bastion_public_ip)
-          ssh -o StrictHostKeyChecking=no -i ansible/devops_practice.pem ubuntu@$BASTION_IP 'echo 🟢 SSH to Bastion works'
-
-      - name: Run Ansible Playbook with Dynamic Inventory
+      - name: Run Ansible Playbook via SSM
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          BASTION_IP=$(terraform -chdir=terraform/main_project output -raw bastion_public_ip)
 
           ansible-playbook ansible/playbook.yml \
-            -i ansible/aws_ec2.yml \
-            --private-key ansible/devops_practice.pem \
-            --extra-vars "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} bastion_ip=${BASTION_IP}" \
-            --ssh-extra-args="-o StrictHostKeyChecking=no" \
-            -u ubuntu
+            -i localhost, \
+            -e "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} instance_id=${{ steps.get_instance_id.outputs.instance_id }}"
