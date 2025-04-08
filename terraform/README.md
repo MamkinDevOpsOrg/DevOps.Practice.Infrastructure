@@ -39,5 +39,6 @@ terraform apply       # Apply the changes (create VM)
 
 ```bash
 cd terraform/main_project
-terraform destroy     # Destroy the created resources
+./pre_destroy_cleanup.sh    # Delete NAT Gateway and release all unattached EIPs
+terraform destroy           # Destroy the created resources
 ```
