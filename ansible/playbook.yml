@@ -113,10 +113,38 @@
       args:
         executable: /bin/bash
 
-    - name: Debug whoami on EC2
-      command: whoami
-      register: whoami_out
+    - name: Pull app image from ECR
+      become: true
+      become_user: ubuntu
+      shell: |
+        docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
+      args:
+        executable: /bin/bash
 
-    - name: Show current user
-      debug:
-        var: whoami_out.stdout
+    - name: Ensure previous app1 container is removed (if any)
+      become: true
+      become_user: ubuntu
+      shell: |
+        docker rm -f app1 || true
+      args:
+        executable: /bin/bash
+
+    - name: Run app1 container
+      become: true
+      become_user: ubuntu
+      shell: |
+        docker run -d \
+          --name app1 \
+          -p 80:8000 \
+          {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
+      args:
+        executable: /bin/bash
+
+    # Debug steps - ucomment if you want to see 'whoami' output
+    # - name: Debug whoami on EC2
+    #   command: whoami
+    #   register: whoami_out
+
+    # - name: Show current user
+    #   debug:
+    #     var: whoami_out.stdout

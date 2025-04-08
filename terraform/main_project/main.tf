@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.16"
+      version = "~> 5.0"
     }
   }
 
@@ -44,44 +44,14 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-# Security group
-resource "aws_security_group" "app_sg" {
-  name        = "app-server-sg"
-  description = "Allow SSH and HTTP access"
-  # vpc_id      = will be added later
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description = "All traffic out"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 # EC2
 resource "aws_instance" "app_server" {
-  ami                  = var.machine_image
-  instance_type        = var.instance_type
-  key_name             = var.key_pair_name_for_ssh
-  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+  ami                    = var.machine_image
+  instance_type          = var.instance_type
+  key_name               = var.key_pair_name_for_ssh
+  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
+  subnet_id              = module.vpc.private_subnets[0]
 
   tags = {
     Name = var.instance_name
