@@ -29,5 +29,5 @@
           --instance-ids {{ instance_id }} \
           --document-name "AWS-RunShellScript" \
           --comment "Ansible SSM deploy" \
-          --parameters '{"commands":["{{ ssm_commands | replace("\n", "\",\"") }}"]}' \
+          --parameters '{"commands": [{{ ssm_commands.splitlines() | map('quote') | join(', ') }}]}' \
           --output text
