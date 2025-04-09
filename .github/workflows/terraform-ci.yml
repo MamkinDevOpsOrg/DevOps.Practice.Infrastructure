@@ -1,6 +1,8 @@
 name: Terraform CI/CD
 
 on:
+  repository_dispatch:
+    types: [app_image_updated]
   pull_request:
     branches: ['main']
   push:
