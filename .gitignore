@@ -1,6 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Terraform Lambda builds
+terraform/**/builds/
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -41,3 +44,4 @@ key_pair
 
 *.pem
 *.txt
+
