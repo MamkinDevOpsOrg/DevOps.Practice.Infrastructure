@@ -45,3 +45,4 @@ key_pair
 *.pem
 *.txt
 
+_local-service
