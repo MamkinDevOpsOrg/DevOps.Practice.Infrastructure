@@ -28,3 +28,8 @@ variable "key_pair_name_for_ssh" {
   default     = "devops_practice"
 }
 
+variable "s3_instance_name" {
+  description = "Value of the name bucket in S3"
+  type        = string
+  default     = "tfstate-storage-for-mamkindevops-dev-1"
+}
