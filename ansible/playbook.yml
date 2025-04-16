@@ -16,8 +16,9 @@
       - unzip -o awscliv2.zip
       - ./aws/install
       - aws ecr get-login-password --region {{ region }} | docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com
-      - docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
       - docker rm -f app1 || true
+      - docker image rm -f {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest || true
+      - docker pull {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
       - docker run -d --name app1 -p 80:8000 {{ account_id }}.dkr.ecr.{{ region }}.amazonaws.com/ecr-kapset:latest
 
   tasks:
