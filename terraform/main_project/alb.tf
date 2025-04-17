@@ -7,6 +7,12 @@ module "alb" {
   vpc_id             = module.vpc.vpc_id
   subnets            = module.vpc.public_subnets
 
+  access_logs = {
+    bucket  = "alb-access-logs-storage-for-mamkindevops-dev-1"
+    prefix  = "app1"
+    enabled = true
+  }
+
   security_group_ingress_rules = {
     http = {
       from_port   = 80
