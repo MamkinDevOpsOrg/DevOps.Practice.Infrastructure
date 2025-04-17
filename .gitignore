@@ -46,3 +46,5 @@ key_pair
 *.txt
 
 _local-service
+
+node_modules
