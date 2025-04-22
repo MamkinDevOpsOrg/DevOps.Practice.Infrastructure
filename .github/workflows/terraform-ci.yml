@@ -82,18 +82,18 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
 
-      - name: Output and show ALB link
+      - name: Show link to application
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           if terraform output -raw alb_dns_name >/dev/null 2>&1; then
             ALB_DNS=$(terraform output -raw alb_dns_name)
-            echo "alb_dns_name=$ALB_DNS" >> "$GITHUB_OUTPUT"
+            echo ""
             echo "✅ Link to application:"
-            echo "$ALB_DNS"
-            echo "::notice title=LINK::$ALB_DNS"
+            echo "http://${ALB_DNS}"
+            echo "::notice title=✅ Application URL::http://${ALB_DNS}"
           else
-            echo "alb_dns_name=" >> "$GITHUB_OUTPUT"
             echo "❌ ALB DNS name not found."
+            echo "::warning title=ALB not found::Output variable 'alb_dns_name' is empty or undefined."
           fi
 
   # ------------------------------------------------------------------------------
