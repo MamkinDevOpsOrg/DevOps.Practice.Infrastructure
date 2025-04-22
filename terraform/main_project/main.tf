@@ -49,20 +49,20 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2-ecr-access-profile"
   role = aws_iam_role.ec2_role.name
-}
+} 
 
-# EC2 app server
-resource "aws_instance" "app_server" {
-  ami                    = var.machine_image
-  instance_type          = var.instance_type
-  key_name               = var.key_pair_name_for_ssh
-  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
-  subnet_id              = module.vpc.private_subnets[0]
+# # EC2 app server (no longer needed since there is ASG - just leaving it as an example)
+# resource "aws_instance" "app_server" {
+#   ami                    = var.machine_image
+#   instance_type          = var.instance_type
+#   key_name               = var.key_pair_name_for_ssh
+#   iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
+#   vpc_security_group_ids = [aws_security_group.app_sg.id]
+#   subnet_id              = module.vpc.private_subnets[0]
 
-  tags = {
-    Name = var.instance_name
-  }
+#   tags = {
+#     Name = var.instance_name
+#   }
 
-  user_data = file("${path.module}/scripts/user_data_app_server.sh")
-}
+#   user_data = file("${path.module}/scripts/user_data_app_server.sh")
+# }
