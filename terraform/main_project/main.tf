@@ -49,7 +49,7 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2-ecr-access-profile"
   role = aws_iam_role.ec2_role.name
-} 
+}
 
 # # EC2 app server (no longer needed since there is ASG - just leaving it as an example)
 # resource "aws_instance" "app_server" {

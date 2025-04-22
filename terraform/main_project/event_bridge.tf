@@ -52,4 +52,32 @@ resource "aws_lambda_permission" "allow_eventbridge_to_invoke_mem" {
   source_arn    = module.eventbridge_lambda_triggers.eventbridge_rule_arns["trigger_mem"]
 }
 
+# === EventBridge Rule for ECR PUSH latest ===
+resource "aws_cloudwatch_event_rule" "ecr_latest_image_push" {
+  name        = "ecr-latest-image-push"
+  description = "Triggered on push of 'latest' image to ECR"
 
+  event_pattern = jsonencode({
+    source        = ["aws.ecr"],
+    "detail-type" = ["ECR Image Action"],
+    detail = {
+      "action-type"     = ["PUSH"],
+      "repository-name" = ["ecr-kapset"],
+      "image-tag"       = ["latest"]
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "trigger_lambda_on_image_push" {
+  rule      = aws_cloudwatch_event_rule.ecr_latest_image_push.name
+  target_id = "ECRImagePushTarget"
+  arn       = aws_lambda_function.ecr_listener.arn
+}
+
+resource "aws_lambda_permission" "eventbridge_invoke_lambda" {
+  statement_id  = "AllowExecutionFromEventBridge_ECRPush"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.ecr_listener.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.ecr_latest_image_push.arn
+}
