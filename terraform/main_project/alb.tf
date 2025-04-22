@@ -31,13 +31,13 @@ module "alb" {
 
   target_groups = {
     app = {
-      name_prefix = "app1"
-      protocol    = "HTTP"
-      port        = 80
-      target_type = "instance"
-      create_attachment = false      
+      name_prefix       = "app1"
+      protocol          = "HTTP"
+      port              = 80
+      target_type       = "instance"
+      create_attachment = false
     }
-  }  
+  }
 
   listeners = {
     http = {
