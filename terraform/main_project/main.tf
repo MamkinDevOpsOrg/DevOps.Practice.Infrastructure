@@ -63,4 +63,6 @@ resource "aws_instance" "app_server" {
   tags = {
     Name = var.instance_name
   }
+
+  user_data = file("${path.module}/scripts/user_data_app_server.sh")
 }

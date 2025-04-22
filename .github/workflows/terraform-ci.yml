@@ -82,66 +82,75 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
 
-      - name: Output link
-        id: alb_output
+      - name: Output and show ALB link
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           if terraform output -raw alb_dns_name >/dev/null 2>&1; then
             ALB_DNS=$(terraform output -raw alb_dns_name)
             echo "alb_dns_name=$ALB_DNS" >> "$GITHUB_OUTPUT"
+            echo "✅ Link to application:"
+            echo "$ALB_DNS"
+            echo "::notice title=LINK::$ALB_DNS"
           else
             echo "alb_dns_name=" >> "$GITHUB_OUTPUT"
+            echo "❌ ALB DNS name not found."
           fi
 
-  provision:
-    name: Ansible Provision via AWS SSM
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+  # ------------------------------------------------------------------------------
+  # This Ansible provisioning block is commented out intentionally.
+  # EC2 instances now bootstrap themselves fully via user_data without SSM.
+  # No need to provision via Ansible after Terraform apply.
+  # ------------------------------------------------------------------------------
 
-    needs: apply
+  # provision:
+  #   name: Ansible Provision via AWS SSM
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+  #   needs: apply
 
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v3
 
-      - name: Install Ansible and dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3 python3-pip unzip curl
-          python3 -m pip install --upgrade pip
-          pip install ansible boto3
-          ansible-galaxy collection install amazon.aws
+  #     - name: Setup AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get EC2 Instance ID
-        id: get_instance_id
-        run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=app_server" \
-                      "Name=instance-state-name,Values=running" \
-            --query "Reservations[0].Instances[0].InstanceId" \
-            --output text)
-          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+  #     - name: Install Ansible and dependencies
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install -y python3 python3-pip unzip curl
+  #         python3 -m pip install --upgrade pip
+  #         pip install ansible boto3
+  #         ansible-galaxy collection install amazon.aws
 
-      - name: Run Ansible Playbook via SSM
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+  #     - name: Get EC2 Instance ID
+  #       id: get_instance_id
+  #       run: |
+  #         INSTANCE_ID=$(aws ec2 describe-instances \
+  #           --filters "Name=tag:Name,Values=app_server" \
+  #                     "Name=instance-state-name,Values=running" \
+  #           --query "Reservations[0].Instances[0].InstanceId" \
+  #           --output text)
+  #         echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
 
-          ansible-playbook ansible/playbook.yml \
-            -i localhost, \
-            -e "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} instance_id=${{ steps.get_instance_id.outputs.instance_id }}"
+  #     - name: Run Ansible Playbook via SSM
+  #       run: |
+  #         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-      - name: Wait before finishing job (give app time to start)
-        run: sleep 60
+  #         ansible-playbook ansible/playbook.yml \
+  #           -i localhost, \
+  #           -e "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} instance_id=${{ steps.get_instance_id.outputs.instance_id }}"
 
-      - name: Show link to application
-        run: |
-          echo "✅ Link to application:"
-          echo "${{ needs.apply.outputs.alb_dns_name }}"
-          echo "::notice title=LINK::${{ needs.apply.outputs.alb_dns_name }}"
+  #     - name: Wait before finishing job (give app time to start)
+  #       run: sleep 60
+
+  #     - name: Show link to application
+  #       run: |
+  #         echo "✅ Link to application:"
+  #         echo "${{ needs.apply.outputs.alb_dns_name }}"
+  #         echo "::notice title=LINK::${{ needs.apply.outputs.alb_dns_name }}"

@@ -7,7 +7,7 @@ variable "region" {
 variable "machine_image" {
   description = "Value of the ami property for the EC2 instance"
   type        = string
-  default     = "ami-075686beab831bb7f" // Ubuntu Server 24.04 LTS (HVM), SSD Volume Type
+  default     = "ami-03f8acd418785369b" // Ubuntu Server 22.04 LTS (HVM), SSD Volume Type
 }
 
 variable "instance_type" {
