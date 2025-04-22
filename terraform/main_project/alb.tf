@@ -35,9 +35,9 @@ module "alb" {
       protocol    = "HTTP"
       port        = 80
       target_type = "instance"
-      target_id   = aws_instance.app_server.id
+      create_attachment = false      
     }
-  }
+  }  
 
   listeners = {
     http = {
