@@ -74,9 +74,9 @@ resource "aws_api_gateway_method" "init_analytics_db_post_method" {
 }
 
 resource "aws_api_gateway_integration" "init_analytics_db_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.analytics_api.id
-  resource_id             = aws_api_gateway_resource.init_analytics_db_resource.id
-  http_method             = aws_api_gateway_method.init_analytics_db_post_method.http_method
+  rest_api_id = aws_api_gateway_rest_api.analytics_api.id
+  resource_id = aws_api_gateway_resource.init_analytics_db_resource.id
+  http_method = aws_api_gateway_method.init_analytics_db_post_method.http_method
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
