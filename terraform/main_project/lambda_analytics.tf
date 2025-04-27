@@ -120,3 +120,44 @@ resource "aws_lambda_function" "analytics_db_init_lambda" {
     Name = "analytics-db-init"
   }
 }
+
+# ----------------------------------------------------------------------------
+# Analytics Data Getter Lambda (for GET /analytics)
+# ----------------------------------------------------------------------------
+data "archive_file" "analytics_data_getter_lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/modules/lambda_analytics_data_getter"
+  output_path = "${path.module}/builds/analytics_data_getter_lambda.zip"
+}
+
+resource "aws_lambda_function" "analytics_data_getter_lambda" {
+  function_name = "analytics-data-getter"
+
+  filename         = data.archive_file.analytics_data_getter_lambda_zip.output_path
+  source_code_hash = data.archive_file.analytics_data_getter_lambda_zip.output_base64sha256
+
+  handler     = "index.handler"
+  runtime     = "nodejs20.x"
+  timeout     = 30
+  memory_size = 512
+
+  role = aws_iam_role.analytics_lambda_role.arn
+
+  vpc_config {
+    subnet_ids         = module.vpc.private_subnets
+    security_group_ids = [aws_security_group.lambda_db_sg.id]
+  }
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.analytics_db.address
+      DB_NAME     = var.analytics_db_name
+      DB_USER     = var.analytics_db_username
+      DB_PASSWORD = var.analytics_db_password
+    }
+  }
+
+  tags = {
+    Name = "analytics-data-getter"
+  }
+}
