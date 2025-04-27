@@ -33,3 +33,20 @@ variable "s3_instance_name" {
   type        = string
   default     = "tfstate-storage-for-mamkindevops-dev-1"
 }
+
+variable "analytics_db_username" {
+  description = "Analytics database username"
+  type        = string
+  default     = "analyticsdb_user"
+}
+
+variable "analytics_db_password" {
+  description = "Analytics database password"
+  type        = string
+}
+
+variable "analytics_db_name" {
+  description = "Analytics database name"
+  type        = string
+  default     = "analyticsdb"
+}

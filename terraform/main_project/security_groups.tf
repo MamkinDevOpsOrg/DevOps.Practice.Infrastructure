@@ -1,4 +1,3 @@
-# Security Group for EC2 instance (App Server)
 resource "aws_security_group" "app_sg" {
   name        = "app-server-sg"
   description = "Allow HTTP from ALB and SSH from anywhere"
@@ -29,5 +28,23 @@ resource "aws_security_group" "app_sg" {
 
   tags = {
     Name = "app-server-sg"
+  }
+}
+
+resource "aws_security_group" "lambda_db_sg" {
+  name        = "analytics-lambda-sg"
+  description = "Allow Lambda to access anything needed"
+  vpc_id      = module.vpc.vpc_id
+
+  egress {
+    description = "Allow all outbound traffic (including to RDS, Internet)"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "analytics-lambda-sg"
   }
 }
