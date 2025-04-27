@@ -12,3 +12,8 @@ output "analytics_db_endpoint" {
   description = "Endpoint of Analytics PostgreSQL database"
   value       = aws_db_instance.analytics_db.endpoint
 }
+
+output "analytics_api_url" {
+  description = "URL to send analytics events"
+  value = "https://${aws_api_gateway_rest_api.analytics_api.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.analytics_api_stage.stage_name}/analytics"
+}
