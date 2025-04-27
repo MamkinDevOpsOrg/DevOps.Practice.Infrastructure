@@ -161,7 +161,7 @@ resource "aws_iam_role_policy" "analytics_lambda_policy" {
 
 data "archive_file" "analytics_lambda_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda_analytics"
+  source_dir  = "${path.module}/modules/lambda_analytics"
   output_path = "${path.module}/builds/analytics_lambda.zip"
 }
 
