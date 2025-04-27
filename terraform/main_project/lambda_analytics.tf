@@ -42,22 +42,17 @@ resource "aws_iam_role_policy" "analytics_lambda_policy" {
 # ----------------------------------------------------------------------------
 # Analytics Event Handler Lambda
 # ----------------------------------------------------------------------------
-data "archive_file" "analytics_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_analytics"
-  output_path = "${path.module}/builds/analytics_lambda.zip"
-}
-
 resource "aws_lambda_function" "analytics_lambda" {
   function_name = "analytics-event-handler"
 
-  filename         = data.archive_file.analytics_lambda_zip.output_path
-  source_code_hash = data.archive_file.analytics_lambda_zip.output_base64sha256
+  s3_bucket = var.s3_instance_name
+  s3_key    = "lambda/placeholders/placeholder.zip"
 
   handler     = "index.handler"
   runtime     = "nodejs20.x"
   timeout     = 30
   memory_size = 512
+  publish     = false
 
   role = aws_iam_role.analytics_lambda_role.arn
 
@@ -76,29 +71,24 @@ resource "aws_lambda_function" "analytics_lambda" {
   }
 
   tags = {
-    Name = "analytics-lambda"
+    Name = "analytics-event-handler"
   }
 }
 
 # ----------------------------------------------------------------------------
 # Analytics DB Init Lambda
 # ----------------------------------------------------------------------------
-data "archive_file" "analytics_db_init_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_analytics_db_init"
-  output_path = "${path.module}/builds/analytics_db_init_lambda.zip"
-}
-
 resource "aws_lambda_function" "analytics_db_init_lambda" {
   function_name = "analytics-db-init"
 
-  filename         = data.archive_file.analytics_db_init_lambda_zip.output_path
-  source_code_hash = data.archive_file.analytics_db_init_lambda_zip.output_base64sha256
+  s3_bucket = var.s3_instance_name
+  s3_key    = "lambda/placeholders/placeholder.zip"
 
   handler     = "index.handler"
   runtime     = "nodejs20.x"
   timeout     = 60
   memory_size = 512
+  publish     = false
 
   role = aws_iam_role.analytics_lambda_role.arn
 
@@ -122,24 +112,19 @@ resource "aws_lambda_function" "analytics_db_init_lambda" {
 }
 
 # ----------------------------------------------------------------------------
-# Analytics Data Getter Lambda (for GET /analytics)
+# Analytics Data Getter Lambda
 # ----------------------------------------------------------------------------
-data "archive_file" "analytics_data_getter_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_analytics_data_getter"
-  output_path = "${path.module}/builds/analytics_data_getter_lambda.zip"
-}
-
 resource "aws_lambda_function" "analytics_data_getter_lambda" {
   function_name = "analytics-data-getter"
 
-  filename         = data.archive_file.analytics_data_getter_lambda_zip.output_path
-  source_code_hash = data.archive_file.analytics_data_getter_lambda_zip.output_base64sha256
+  s3_bucket = var.s3_instance_name
+  s3_key    = "lambda/placeholders/placeholder.zip"
 
   handler     = "index.handler"
   runtime     = "nodejs20.x"
   timeout     = 30
   memory_size = 512
+  publish     = false
 
   role = aws_iam_role.analytics_lambda_role.arn
 
