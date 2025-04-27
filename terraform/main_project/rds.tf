@@ -36,8 +36,7 @@ resource "aws_db_subnet_group" "analytics_rds_subnet_group" {
 resource "aws_db_instance" "analytics_db" {
   identifier             = "analytics-db"
   engine                 = "postgres"
-  engine_version         = "15.5"
-  instance_class         = "db.t4g.micro"
+  instance_class         = "db.t3.micro"
   allocated_storage      = 20
   storage_type           = "gp2"
   username               = var.analytics_db_username
@@ -50,7 +49,7 @@ resource "aws_db_instance" "analytics_db" {
   db_subnet_group_name   = aws_db_subnet_group.analytics_rds_subnet_group.name
 
   backup_retention_period = 7
-  availability_zone       = var.region
+  availability_zone       = "us-west-2a"
 
   tags = {
     Name        = "analytics-db"
