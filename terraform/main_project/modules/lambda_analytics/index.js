@@ -1,4 +1,4 @@
-const { Client } = require('pg');
+import { Client } from 'pg';
 
 let client;
 
@@ -15,7 +15,7 @@ async function connectToDatabase() {
   }
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   try {
     await connectToDatabase();
 

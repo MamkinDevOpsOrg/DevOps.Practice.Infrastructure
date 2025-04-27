@@ -1,6 +1,6 @@
-const { Client } = require('pg');
+import { Client } from 'pg';
 
-exports.handler = async () => {
+export const handler = async () => {
   const client = new Client({
     host: process.env.DB_HOST,
     port: 5432,
@@ -11,6 +11,8 @@ exports.handler = async () => {
 
   try {
     await client.connect();
+
+    console.log('✅ Connected to database');
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS user_session (

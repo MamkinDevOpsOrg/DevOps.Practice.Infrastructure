@@ -17,3 +17,8 @@ output "analytics_api_url" {
   description = "URL to send analytics events"
   value       = "https://${aws_api_gateway_rest_api.analytics_api.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.analytics_api_stage.stage_name}/analytics"
 }
+
+output "analytics_db_init_api_url" {
+  description = "URL to send analytics events"
+  value       = "https://${aws_api_gateway_rest_api.analytics_api.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.analytics_api_stage.stage_name}/init-analytics-db"
+}
