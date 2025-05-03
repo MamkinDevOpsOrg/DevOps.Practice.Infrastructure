@@ -61,7 +61,7 @@ resource "aws_lambda_function" "analytics_lambda" {
 
   handler     = "index.handler"
   runtime     = "nodejs20.x"
-  timeout     = 30
+  timeout     = 60
   memory_size = 512
   publish     = false
 
@@ -196,10 +196,11 @@ resource "aws_lambda_function" "analytics_sqs_consumer_lambda" {
 }
 
 resource "aws_lambda_event_source_mapping" "analytics_sqs_trigger" {
-  event_source_arn = aws_sqs_queue.analytics_events.arn
-  function_name    = aws_lambda_function.analytics_sqs_consumer_lambda.arn
-  enabled          = true
-  batch_size       = 10
+  event_source_arn                   = aws_sqs_queue.analytics_events.arn
+  function_name                      = aws_lambda_function.analytics_sqs_consumer_lambda.arn
+  enabled                            = true
+  batch_size                         = 20
+  maximum_batching_window_in_seconds = 2
   // Lambda receives messages in batches from SQS (up to batchSize).
   // If an error occurs during processing, the ENTIRE batch is retried.
   // To avoid message loss or duplicate processing:
