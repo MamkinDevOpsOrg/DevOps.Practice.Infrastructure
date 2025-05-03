@@ -110,7 +110,7 @@ resource "aws_lambda_function" "ecr_listener" {
   source_code_hash = data.archive_file.lambda_ecr_listener_zip.output_base64sha256
 
   handler = "index.handler"
-  runtime = "nodejs18.x"
+  runtime = "nodejs20.x"
   timeout = 120
 
   role = aws_iam_role.lambda_restart_role.arn
