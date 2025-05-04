@@ -69,7 +69,7 @@ resource "aws_lambda_function" "forward_logs" {
   source_code_hash = data.archive_file.forward_logs_zip.output_base64sha256
 
   handler = "index.handler"
-  runtime = "nodejs18.x"
+  runtime = "nodejs20.x"
   timeout = 60
 
   role = aws_iam_role.forward_logs_role.arn

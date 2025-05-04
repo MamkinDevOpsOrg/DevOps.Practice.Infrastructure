@@ -1,51 +1,51 @@
-module "lambda_trigger_cpu" {
-  source = "terraform-aws-modules/lambda/aws"
+# module "lambda_trigger_cpu" {
+#   source = "terraform-aws-modules/lambda/aws"
 
-  function_name  = "trigger_cpu_load"
-  handler        = "index.handler"
-  runtime        = "nodejs20.x"
-  timeout        = 65
-  publish        = false
-  create_package = false
+#   function_name  = "trigger_cpu_load"
+#   handler        = "index.handler"
+#   runtime        = "nodejs20.x"
+#   timeout        = 65
+#   publish        = false
+#   create_package = false
 
-  s3_existing_package = {
-    bucket = var.s3_instance_name
-    key    = "lambda/placeholders/placeholder.zip"
-  }
+#   s3_existing_package = {
+#     bucket = var.s3_instance_name
+#     key    = "lambda/placeholders/placeholder.zip"
+#   }
 
 
-  environment_variables = {
-    TARGET_URL = "http://${module.alb.dns_name}/v1/load/cpu"
-  }
+#   environment_variables = {
+#     TARGET_URL = "http://${module.alb.dns_name}/v1/load/cpu"
+#   }
 
-  tags = {
-    Name = "trigger_cpu_load"
-  }
-}
+#   tags = {
+#     Name = "trigger_cpu_load"
+#   }
+# }
 
-module "lambda_trigger_mem" {
-  source = "terraform-aws-modules/lambda/aws"
+# module "lambda_trigger_mem" {
+#   source = "terraform-aws-modules/lambda/aws"
 
-  function_name  = "trigger_mem_load"
-  handler        = "index.handler"
-  runtime        = "nodejs20.x"
-  timeout        = 65
-  publish        = false
-  create_package = false
+#   function_name  = "trigger_mem_load"
+#   handler        = "index.handler"
+#   runtime        = "nodejs20.x"
+#   timeout        = 65
+#   publish        = false
+#   create_package = false
 
-  s3_existing_package = {
-    bucket = var.s3_instance_name
-    key    = "lambda/placeholders/placeholder.zip"
-  }
+#   s3_existing_package = {
+#     bucket = var.s3_instance_name
+#     key    = "lambda/placeholders/placeholder.zip"
+#   }
 
-  environment_variables = {
-    TARGET_URL = "http://${module.alb.dns_name}/v1/load/mem"
-  }
+#   environment_variables = {
+#     TARGET_URL = "http://${module.alb.dns_name}/v1/load/mem"
+#   }
 
-  tags = {
-    Name = "trigger_mem_load"
-  }
-}
+#   tags = {
+#     Name = "trigger_mem_load"
+#   }
+# }
 
 resource "aws_iam_role" "lambda_restart_role" {
   name = "lambda-ecr-image-watcher"
@@ -110,7 +110,7 @@ resource "aws_lambda_function" "ecr_listener" {
   source_code_hash = data.archive_file.lambda_ecr_listener_zip.output_base64sha256
 
   handler = "index.handler"
-  runtime = "nodejs18.x"
+  runtime = "nodejs20.x"
   timeout = 120
 
   role = aws_iam_role.lambda_restart_role.arn
