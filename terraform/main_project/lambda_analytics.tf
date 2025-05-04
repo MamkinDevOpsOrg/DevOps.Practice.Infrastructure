@@ -201,10 +201,15 @@ resource "aws_lambda_event_source_mapping" "analytics_sqs_trigger" {
   enabled                            = true
   batch_size                         = 20
   maximum_batching_window_in_seconds = 2
-  // Lambda receives messages in batches from SQS (up to batchSize).
-  // If an error occurs during processing, the ENTIRE batch is retried.
-  // To avoid message loss or duplicate processing:
-  // - Ensure inserts are idempotent (e.g., use ON CONFLICT in SQL).
-  // - Wrap per-message logic in try/catch to prevent one failure from affecting others.
-  // - Consider configuring a Dead Letter Queue (DLQ) for permanently failing messages.
+  #  Lambda receives messages in batches from SQS (up to batchSize).
+  #  If an error occurs during processing, the ENTIRE batch is retried.
+  #  To avoid message loss or duplicate processing:
+  #  - Ensure inserts are idempotent (e.g., use ON CONFLICT in SQL).
+  #  - Wrap per-message logic in try/catch to prevent one failure from affecting others.
+  #  - Consider configuring a Dead Letter Queue (DLQ) for permanently failing messages.
+
+  # Using `batch_size` and `maximum_batching_window_in_seconds` together helps optimize Lambda invocations from SQS. 
+  # `batch_size` defines the max number of messages per invocation,
+  # while `batching_window` gives Lambda time to collect more messages before triggering.
+  # This reduces invocation count, improves processing efficiency, and minimizes DB load by handling more messages per execution.
 }
