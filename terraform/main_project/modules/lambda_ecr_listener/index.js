@@ -28,10 +28,12 @@ export const handler = async () => {
   console.log(`Target instances: ${instanceIds.join(', ')}`);
 
   const repo = process.env.ECR_REPOSITORY;
-  const region = process.env.AWS_REGION;
+  const region = process.env.AWS_REGION || 'us-west-2';
+
   const image = `\$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${region}.amazonaws.com/${repo}:latest`;
 
   const commands = [
+    `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin \$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${region}.amazonaws.com`,
     'docker rm -f app1 || true',
     `docker pull ${image}`,
     `docker run -d --name app1 -p 80:8000 ${image}`,
