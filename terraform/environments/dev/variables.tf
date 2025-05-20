@@ -25,15 +25,35 @@ variable "alb_name" {
 variable "access_log_bucket" {
   default = "alb-access-logs-storage-for-mamkindevops-dev-1"
 }
+
 variable "access_log_prefix" {
   default = "app1"
 }
+
 variable "target_group_name_prefix" {
   default = "app1"
 }
+
 variable "environment" {
   default = "dev"
 }
+
 variable "project" {
   default = "app1"
+}
+
+variable "machine_image" {
+  default = "ami-075686beab831bb7f" # Ubuntu Server 22.04 LTS (HVM), SSD Volume Type — us-west-2
+}
+
+variable "instance_type" {
+  default = "t3.micro"
+}
+
+variable "key_pair_name" {
+  default = "devops_practice"
+}
+
+variable "ec2_name_tag" {
+  default = "app1-asg-instance"
 }

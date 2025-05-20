@@ -23,7 +23,6 @@ variable "private_subnet_cidrs" {
   description = "List of CIDRs for private subnets"
 }
 
-
 variable "alb_name" {
   type        = string
   description = "Name of the ALB"
@@ -52,4 +51,24 @@ variable "environment" {
 variable "project" {
   type        = string
   description = "Project tag"
+}
+
+variable "machine_image" {
+  description = "AMI ID for EC2 instances"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "key_pair_name" {
+  description = "Name of the SSH key pair"
+  type        = string
+}
+
+variable "ec2_name_tag" {
+  description = "Tag 'Name' for EC2 instances in ASG"
+  type        = string
 }
