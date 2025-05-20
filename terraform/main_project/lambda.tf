@@ -99,7 +99,7 @@ resource "aws_iam_role_policy" "lambda_restart_policy" {
 
 data "archive_file" "lambda_ecr_listener_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_ecr_listener"
+  source_dir  = "${path.module}/lambdas/lambda_ecr_listener"
   output_path = "${path.module}/builds/lambda_ecr_listener.zip"
 }
 
