@@ -27,3 +27,53 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2-ecr-access-profile"
   role = aws_iam_role.ec2_role.name
 }
+
+resource "aws_iam_role" "lambda_restart_role" {
+  name = "lambda-ecr-image-watcher"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_restart_policy" {
+  role = aws_iam_role.lambda_restart_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ec2:DescribeInstances",
+          "autoscaling:DescribeAutoScalingGroups"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}

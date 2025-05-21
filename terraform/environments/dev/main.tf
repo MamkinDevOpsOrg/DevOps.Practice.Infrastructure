@@ -16,4 +16,5 @@ module "app" {
   instance_type            = var.instance_type
   key_pair_name            = var.key_pair_name
   ec2_name_tag             = var.ec2_name_tag
+  ecr_repository_name      = var.ecr_repository_name
 }

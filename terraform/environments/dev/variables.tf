@@ -57,3 +57,7 @@ variable "key_pair_name" {
 variable "ec2_name_tag" {
   default = "app1-asg-instance"
 }
+
+variable "ecr_repository_name" {
+  default = "ecr-kapset"
+}

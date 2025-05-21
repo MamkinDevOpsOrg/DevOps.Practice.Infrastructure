@@ -72,3 +72,8 @@ variable "ec2_name_tag" {
   description = "Tag 'Name' for EC2 instances in ASG"
   type        = string
 }
+
+variable "ecr_repository_name" {
+  description = "Name of ECR repository"
+  type        = string
+}
