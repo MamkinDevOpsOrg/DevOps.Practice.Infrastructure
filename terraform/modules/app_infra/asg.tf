@@ -13,6 +13,12 @@ resource "aws_launch_template" "app_server" {
 
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional"
+    http_put_response_hop_limit = 1
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags = {
