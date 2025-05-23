@@ -77,3 +77,29 @@ variable "ecr_repository_name" {
   description = "Name of ECR repository"
   type        = string
 }
+
+variable "analytics_db_username" {
+  description = "Username for analytics database"
+  type        = string
+}
+
+variable "analytics_db_password" {
+  description = "Password for analytics database"
+  type        = string
+  sensitive   = true
+}
+
+variable "analytics_db_name" {
+  description = "Database name for analytics database"
+  type        = string
+}
+
+variable "s3_instance_name" {
+  description = "S3 bucket where lambda zips are stored"
+  type        = string
+}
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+}

@@ -61,3 +61,24 @@ variable "ec2_name_tag" {
 variable "ecr_repository_name" {
   default = "ecr-kapset"
 }
+
+variable "analytics_db_username" {
+  default = "analyticsdb_user"
+}
+
+variable "analytics_db_name" {
+  default = "analyticsdb"
+}
+
+variable "s3_instance_name" {
+  default = "tfstate-storage-for-mamkindevops-dev-1"
+}
+
+variable "analytics_db_password" {
+  description = "Analytics database password"
+  type        = string
+}
+
+variable "region" {
+  default = "us-west-2"
+}
