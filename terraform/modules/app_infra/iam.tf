@@ -77,3 +77,43 @@ resource "aws_iam_role_policy" "lambda_restart_policy" {
     ]
   })
 }
+
+resource "aws_iam_role" "forward_logs_role" {
+  name = "alb-logs-forward-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "forward_logs_policy" {
+  role = aws_iam_role.forward_logs_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow",
+        Action   = ["s3:GetObject"],
+        Resource = "arn:aws:s3:::${var.access_log_bucket}/*"
+      }
+    ]
+  })
+}
