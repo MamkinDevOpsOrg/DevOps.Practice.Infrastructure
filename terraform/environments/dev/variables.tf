@@ -27,11 +27,11 @@ variable "access_log_bucket" {
 }
 
 variable "access_log_prefix" {
-  default = "app1"
+  default = "app1-dev"
 }
 
 variable "target_group_name_prefix" {
-  default = "app1"
+  default = "app1-d"
 }
 
 variable "environment" {
@@ -39,7 +39,7 @@ variable "environment" {
 }
 
 variable "project" {
-  default = "app1"
+  default = "app1-dev"
 }
 
 variable "machine_image" {
@@ -55,11 +55,11 @@ variable "key_pair_name" {
 }
 
 variable "ec2_name_tag" {
-  default = "app1-asg-instance"
+  default = "app1-asg-instance-dev"
 }
 
 variable "ecr_repository_name" {
-  default = "ecr-kapset"
+  default = "ecr-kapset-dev"
 }
 
 variable "analytics_db_username" {
@@ -67,7 +67,7 @@ variable "analytics_db_username" {
 }
 
 variable "analytics_db_name" {
-  default = "analyticsdb"
+  default = "analyticsdbdev"
 }
 
 variable "s3_instance_name" {
