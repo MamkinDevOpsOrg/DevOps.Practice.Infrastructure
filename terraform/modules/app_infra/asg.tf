@@ -53,3 +53,51 @@ resource "aws_autoscaling_group" "app1_asg" {
     create_before_destroy = true
   }
 }
+
+resource "aws_autoscaling_policy" "scale_out" {
+  name                   = "cpu-scale-out"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.app1_asg.name
+}
+
+resource "aws_autoscaling_policy" "scale_in" {
+  name                   = "cpu-scale-in"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.app1_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_high" {
+  alarm_name          = "cpu-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 14
+  alarm_description   = "Scale out if CPU > 14%"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.app1_asg.name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_out.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_low" {
+  alarm_name          = "cpu-low"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 11
+  alarm_description   = "Scale in if CPU < 11%"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.app1_asg.name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_in.arn]
+}
