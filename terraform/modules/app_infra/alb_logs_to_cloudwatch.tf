@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "alb_logs" {
-  name              = "/alb/access-logs"
+  name              = "/alb/access-logs/${var.environment}"
   retention_in_days = 30
 }
 

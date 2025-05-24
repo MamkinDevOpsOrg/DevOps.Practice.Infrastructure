@@ -1,5 +1,5 @@
 resource "aws_security_group" "lambda_db_sg" {
-  name        = "analytics-lambda-sg"
+  name        = "analytics-lambda-sg-${var.environment}"
   description = "Allow Lambda to access anything needed"
   vpc_id      = module.vpc.vpc_id
 
@@ -12,67 +12,16 @@ resource "aws_security_group" "lambda_db_sg" {
   }
 
   tags = {
-    Name = "analytics-lambda-sg"
+    Name        = "analytics-lambda-sg-${var.environment}"
+    Environment = var.environment
   }
-}
-
-# ----------------------------------------------------------------------------
-# IAM Role and Policy for Analytics Lambdas
-# ----------------------------------------------------------------------------
-resource "aws_iam_role" "analytics_lambda_role" {
-  name = "analytics-lambda-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect = "Allow",
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      },
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy" "analytics_lambda_policy" {
-  name = "analytics-lambda-policy"
-  role = aws_iam_role.analytics_lambda_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "ec2:CreateNetworkInterface",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:DeleteNetworkInterface"
-        ],
-        Resource = "*"
-      },
-      {
-        Effect = "Allow",
-        Action = [
-          "sqs:SendMessage",
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes"
-        ],
-        Resource = aws_sqs_queue.analytics_events.arn
-      },
-
-    ]
-  })
 }
 
 # ----------------------------------------------------------------------------
 # Analytics Event Handler Lambda
 # ----------------------------------------------------------------------------
 resource "aws_lambda_function" "analytics_lambda" {
-  function_name = "analytics-event-handler"
+  function_name = "analytics-event-handler-${var.environment}"
 
   s3_bucket = var.s3_instance_name
   s3_key    = "lambda/placeholders/placeholder.zip"
@@ -102,7 +51,8 @@ resource "aws_lambda_function" "analytics_lambda" {
 
 
   tags = {
-    Name = "analytics-event-handler"
+    Name        = "analytics-event-handler-${var.environment}"
+    Environment = var.environment
   }
 }
 
@@ -110,7 +60,7 @@ resource "aws_lambda_function" "analytics_lambda" {
 # Analytics DB Init Lambda
 # ----------------------------------------------------------------------------
 resource "aws_lambda_function" "analytics_db_init_lambda" {
-  function_name = "analytics-db-init"
+  function_name = "analytics-db-init-${var.environment}"
 
   s3_bucket = var.s3_instance_name
   s3_key    = "lambda/placeholders/placeholder.zip"
@@ -138,7 +88,8 @@ resource "aws_lambda_function" "analytics_db_init_lambda" {
   }
 
   tags = {
-    Name = "analytics-db-init"
+    Name        = "analytics-db-init-${var.environment}"
+    Environment = var.environment
   }
 }
 
@@ -146,7 +97,7 @@ resource "aws_lambda_function" "analytics_db_init_lambda" {
 # Analytics Data Getter Lambda
 # ----------------------------------------------------------------------------
 resource "aws_lambda_function" "analytics_data_getter_lambda" {
-  function_name = "analytics-data-getter"
+  function_name = "analytics-data-getter-${var.environment}"
 
   s3_bucket = var.s3_instance_name
   s3_key    = "lambda/placeholders/placeholder.zip"
@@ -174,7 +125,8 @@ resource "aws_lambda_function" "analytics_data_getter_lambda" {
   }
 
   tags = {
-    Name = "analytics-data-getter"
+    Name        = "analytics-data-getter-${var.environment}"
+    Environment = var.environment
   }
 }
 
@@ -182,7 +134,7 @@ resource "aws_lambda_function" "analytics_data_getter_lambda" {
 # Analytics SQS-consumer Lambda
 # ----------------------------------------------------------------------------
 resource "aws_lambda_function" "analytics_sqs_consumer_lambda" {
-  function_name = "analytics-sqs-consumer"
+  function_name = "analytics-sqs-consumer-${var.environment}"
   handler       = "index.handler"
   runtime       = "nodejs20.x"
   timeout       = 60
@@ -209,7 +161,8 @@ resource "aws_lambda_function" "analytics_sqs_consumer_lambda" {
   }
 
   tags = {
-    Name = "analytics-sqs-consumer"
+    Name        = "analytics-sqs-consumer-${var.environment}"
+    Environment = var.environment
   }
 }
 

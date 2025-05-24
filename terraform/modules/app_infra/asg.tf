@@ -1,5 +1,5 @@
 resource "aws_launch_template" "app_server" {
-  name_prefix   = "app1-launch-template"
+  name_prefix   = "app1-launch-template-${var.environment}"
   image_id      = var.machine_image
   instance_type = var.instance_type
 
@@ -28,7 +28,7 @@ resource "aws_launch_template" "app_server" {
 }
 
 resource "aws_autoscaling_group" "app1_asg" {
-  name                      = "app1-asg"
+  name                      = "app1-asg-${var.environment}"
   desired_capacity          = 1
   max_size                  = 3
   min_size                  = 1

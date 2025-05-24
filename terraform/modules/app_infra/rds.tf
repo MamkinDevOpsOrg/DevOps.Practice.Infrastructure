@@ -20,16 +20,17 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    Name = "analytics-rds-sg"
+    Name        = "analytics-rds-sg-${var.environment}"
+    Environment = var.environment
   }
 }
 
 resource "aws_db_subnet_group" "analytics_rds_subnet_group" {
-  name       = "analytics-rds-subnet-group"
+  name       = "analytics-rds-subnet-group-${var.environment}"
   subnet_ids = module.vpc.private_subnets
 
   tags = {
-    Name = "analytics-rds-subnet-group"
+    Name = "analytics-rds-subnet-group-${var.environment}"
   }
 }
 
@@ -52,7 +53,7 @@ resource "aws_db_instance" "analytics_db" {
   availability_zone       = "us-west-2a"
 
   tags = {
-    Name        = "analytics-db"
+    Name        = "analytics-db-${var.environment}"
     Environment = var.environment
   }
 }

@@ -5,7 +5,7 @@ data "archive_file" "lambda_ecr_listener_zip" {
 }
 
 resource "aws_lambda_function" "ecr_listener" {
-  function_name = "ecr_image_listener"
+  function_name = "ecr_image_listener-${var.environment}"
 
   filename         = data.archive_file.lambda_ecr_listener_zip.output_path
   source_code_hash = data.archive_file.lambda_ecr_listener_zip.output_base64sha256
@@ -24,7 +24,7 @@ resource "aws_lambda_function" "ecr_listener" {
 }
 
 resource "aws_cloudwatch_event_rule" "ecr_latest_image_push" {
-  name        = "ecr-latest-image-push"
+  name        = "ecr-latest-image-push-${var.environment}"
   description = "Triggered on push of 'latest' image to ECR"
 
   event_pattern = jsonencode({
