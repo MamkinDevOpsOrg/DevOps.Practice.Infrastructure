@@ -35,7 +35,7 @@ resource "aws_db_subnet_group" "analytics_rds_subnet_group" {
 }
 
 resource "aws_db_instance" "analytics_db" {
-  identifier             = "analytics-db"
+  identifier             = "analytics-db-${var.environment}"
   engine                 = "postgres"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20

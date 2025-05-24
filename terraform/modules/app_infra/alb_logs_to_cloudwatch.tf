@@ -10,7 +10,7 @@ data "archive_file" "forward_logs_zip" {
 }
 
 resource "aws_lambda_function" "forward_logs" {
-  function_name = "forward-alb-logs"
+  function_name = "forward-alb-logs-${var.environment}"
 
   filename         = data.archive_file.forward_logs_zip.output_path
   source_code_hash = data.archive_file.forward_logs_zip.output_base64sha256
