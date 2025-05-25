@@ -1,44 +1,78 @@
-# Terraform AWS VM
+# Terraform AWS Infrastructure (Multi-Environment)
 
-This project demonstrates how to deploy a virtual machine in AWS using Infrastructure as Code (IaC) with Terraform.
+This project manages cloud infrastructure using Terraform across multiple isolated environments (`dev`, `prod`), following best practices of infrastructure-as-code.
+
+---
 
 ## Features
 
-- Uses the AWS provider.
-- Includes a separate bootstrap project to create the S3 bucket (`terraform/infra_bootstrap`).
-- Uses a remote backend stored in an S3 bucket (`terraform/main_project/backend.tf`).
-- Creates an EC2 virtual machine with Terraform (`terraform/main_project/main.tf`).
+- Fully modularized structure using reusable modules (e.g. `app_infra`)
+- Dedicated environment folders: `terraform/environments/dev` and `terraform/environments/prod`
+- Remote state stored in S3 per environment
+- Support for CI/CD via GitHub Actions
+- Isolation between `dev` and `prod`: names, state, configuration
+
+---
+
+## Structure
+
+```
+terraform/
+├── infra_bootstrap/         # One-time S3 + backend setup
+├── modules/
+│   └── app_infra/           # Main app infrastructure module
+├── environments/
+│   ├── dev/
+│   └── prod/
+```
+
+---
 
 ## Usage
-
-Run the following commands in order:
 
 ### 1. Bootstrap: Create S3 bucket for remote state
 
 ```bash
 cd terraform/infra_bootstrap
-terraform init        # Initialize the project and download providers
-terraform fmt         # Format Terraform configuration files
-terraform validate    # Validate the configuration for syntax and internal consistency
-terraform plan        # Preview the deployment plan
-terraform apply       # Apply the changes (create S3 bucket)
+terraform init
+terraform apply
 ```
 
-### 2. Deploy infrastructure using remote backend
+---
+
+### 2. Deploy environment (`dev` or `prod`)
 
 ```bash
-cd terraform/main_project
-terraform init        # Initialize the project and download providers
-terraform fmt         # Format Terraform configuration files
-terraform validate    # Validate the configuration for syntax and internal consistency
-terraform plan        # Preview the deployment plan
-terraform apply       # Apply the changes (create VM)
+cd terraform/environments/dev         # or prod
+terraform init                        # Initializes with backend
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
 ```
 
-### To destroy the created resources use:
+You can override secrets (e.g. DB password) via:
 
 ```bash
-cd terraform/main_project
-./pre_destroy_cleanup.sh    # Delete NAT Gateway and release all unattached EIPs
-terraform destroy           # Destroy the created resources
+export TF_VAR_analytics_db_password=your_password
 ```
+
+---
+
+### 3. Destroy resources
+
+```bash
+cd terraform/environments/dev
+./pre_destroy_cleanup.sh   # Optional: cleanup EIP / NAT resources
+terraform destroy
+```
+
+---
+
+## CI/CD (GitHub Actions)
+
+Terraform is automatically validated and applied:
+
+- PR to `main` → runs `plan` for `dev`
+- Push to `main` → applies to `dev`
+- Manual trigger → applies to `dev` or `prod` (with approval for prod)
