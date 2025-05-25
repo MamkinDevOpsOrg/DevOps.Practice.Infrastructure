@@ -1,9 +1,11 @@
 # DevOps Learning Projects
 
 This repository contains projects and examples for learning DevOps technologies and tools through hands-on practice.  
-It includes practical tasks using Terraform, cloud infrastructure (AWS), automation, and other DevOps-related concepts.
+It includes practical tasks using Terraform, cloud infrastructure (AWS), CI/CD automation, and infrastructure-as-code patterns.
 
 Below you can find onboarding guide.
+
+---
 
 ## DevOps Onboarding Guide
 
@@ -26,21 +28,22 @@ Once you receive the invitation:
 
 ## 2. Set Up SSH Access to GitHub
 
-If you haven’t set up SSH access yet then generate ssh keys
+If you haven’t set up SSH access yet then generate SSH keys:
 
 ```bash
 ssh-keygen -t ed25519 -C "your_email@example.com"
 ```
 
----
-
-Add your public key (~/.ssh/id_ed25519.pub) to GitHub: `GitHub → Profile → Settings → SSH and GPG Keys → New SSH Key`
+Add your public key (~/.ssh/id_ed25519.pub) to GitHub:  
+`GitHub → Profile → Settings → SSH and GPG Keys → New SSH Key`
 
 Test your access:
 
 ```bash
 ssh -T git@github.com
 ```
+
+---
 
 ## 3. Clone the Repository and Create a Branch
 
@@ -50,29 +53,30 @@ cd ./DevOps.Practice.Infrastructure
 git checkout -b devops/your-name/first-task
 ```
 
+---
+
 ## 4. Install Required Tools
 
-Make sure the following are installed on your local machine:
+Ensure you have the following tools installed:
 
-- Terraform (https://developer.hashicorp.com/terraform/install)
+- Terraform — https://developer.hashicorp.com/terraform/install
+- AWS CLI — https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
-- AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+### 4.1 Install Ansible (Optional for Local Provisioning)
 
-## 4.1 Install Ansible (Optional for Local Provisioning)
-
-> This step is optional. Ansible is used for configuring EC2 instances (e.g., install Docker, AWS CLI) after provisioning.
-
-If you run **Linux or WSL**, you can install Ansible directly:
+If you want to manually provision EC2 instances (e.g. Docker, AWS CLI), install Ansible:
 
 ```bash
 sudo apt update && sudo apt install ansible
 ```
 
-For detailed instructions, see [`ansible/README.md`](./ansible/README.md)
+More details in [`ansible/README.md`](./ansible/README.md)
+
+---
 
 ## 5. Configure AWS Credentials
 
-You need an IAM user with the following minimum permissions:
+You need an IAM user with permissions:
 
 | Service | Permissions         |
 | ------- | ------------------- |
@@ -80,16 +84,16 @@ You need an IAM user with the following minimum permissions:
 | S3      | AmazonS3FullAccess  |
 | ECR     | AmazonECRFullAccess |
 
-If you don't have IAM user with the permissions above, ask your AWS admin (artemkapset@gmail.com or mamkindevops@gmail.com) to grant you required accesses (Organization ID: o-ziokp90k5r - for reference only).
+If not available — contact `artemkapset@gmail.com` or `mamkindevops@gmail.com`.
 
-Export your IAM credentials:
+Export credentials:
 
 ```bash
 export AWS_ACCESS_KEY_ID=your-key
 export AWS_SECRET_ACCESS_KEY=your-secret
 ```
 
-For Windows it's better to create `~/.aws/credentials` file with the following content:
+Or use `~/.aws/credentials` file:
 
 ```
 [default]
@@ -103,37 +107,51 @@ Check access:
 aws sts get-caller-identity
 ```
 
-## 6. Make a Change and Open a Pull Request
+---
 
-Navigate to the main infrastructure project `cd terraform/main_project` and make the changes and/or updates you need.
+## 6. Project Structure (Multi-Environment)
 
-After making changes perform:
+The project is fully modularized and supports multiple environments:
 
-```bash
-terraform fmt
-terraform validate
-terraform plan
+```
+terraform/
+├── infra_bootstrap/         # S3 bucket & backend init
+├── modules/                 # All reusable infrastructure modules
+│   └── app_infra/           # Full application stack module
+├── environments/
+│   ├── dev/                 # Development environment
+│   └── prod/                # Production environment
 ```
 
-and then if you are happy with results:
+Each environment contains:
 
-```bash
-git add .
-git commit -m "your message"
-git push origin devops/your-name/first-task
-```
+- its own `main.tf`, `variables.tf`, `terraform.tfvars`, `backend.tf`
+- state stored separately in S3
+- all names and resources isolated by `var.environment`
 
-Then:
+---
 
-- Go to GitHub
+## 7. CI/CD: Infrastructure Deployments
 
-- Open a Pull Request into the main branch
+GitHub Actions is used to validate and deploy infrastructure:
 
-- GitHub Actions will automatically run:
+| Trigger                 | Action                        | Environment    |
+| ----------------------- | ----------------------------- | -------------- |
+| `pull_request` → `main` | `terraform validate` + `plan` | `dev`          |
+| `push` → `main`         | `terraform apply` (auto)      | `dev`          |
+| `workflow_dispatch`     | Manual `apply`                | `dev` / `prod` |
 
-  - `terraform validate`
-  - `terraform plan` and post result as a comment to your Pull Request
+> Production infrastructure is protected. It can only be deployed **manually via GitHub Actions UI** and requires approval via GitHub Environments.
 
-terraform plan and post result as a comment
+---
 
-Make sure the checks pass ✅
+## 8. Contribution Flow
+
+1. Work in `main` branch for `dev` changes
+2. Confirm infrastructure behaves correctly in `dev`
+3. Merge into `prod` branch
+4. Run `Terraform CI/CD` workflow manually with `env: prod` to deploy approved code to production
+
+---
+
+Make sure CI checks pass ✅

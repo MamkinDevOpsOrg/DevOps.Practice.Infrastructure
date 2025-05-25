@@ -57,7 +57,7 @@ resource "aws_cloudwatch_log_group" "alb_logs" {
 
 data "archive_file" "forward_logs_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_forward_logs"
+  source_dir  = "${path.module}/lambdas/lambda_forward_logs"
   output_path = "${path.module}/builds/forward_logs_lambda.zip"
 }
 

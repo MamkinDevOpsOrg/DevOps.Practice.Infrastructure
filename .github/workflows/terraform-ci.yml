@@ -1,9 +1,16 @@
 name: Terraform CI/CD
 
 on:
-  workflow_dispatch: # to trigger manually
-  repository_dispatch:
-    types: [app_image_updated]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
   pull_request:
     branches: ['main']
   push:
@@ -14,11 +21,8 @@ permissions:
   pull-requests: write
 
 env:
-  TF_WORKING_DIR: terraform/main_project
+  TF_WORKING_DIR: terraform/environments/${{ github.event.inputs.env || 'dev' }}
   AWS_REGION: us-west-2
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
 
 jobs:
   validate_plan:
@@ -26,7 +30,19 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
 
+    environment:
+      name: ${{ github.event.inputs.env || 'dev' }}
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
+
     steps:
+      - name: Show selected environment
+        run: |
+          echo "Using environment: ${{ github.event.inputs.env || 'dev' }}"
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -42,7 +58,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        working-directory: terraform/main_project
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -no-color > plan.txt
 
       - name: Post plan as PR comment
@@ -52,7 +68,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('terraform/main_project/plan.txt', 'utf8');
+            const plan = fs.readFileSync(`${process.env.TF_WORKING_DIR}/plan.txt`, 'utf8');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -63,12 +79,21 @@ jobs:
   apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
 
-    outputs:
-      alb_dns_name: ${{ steps.alb_output.outputs.alb_dns_name }}
+    environment:
+      name: ${{ github.event.inputs.env || 'dev' }}
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
 
     steps:
+      - name: Show selected environment
+        run: |
+          echo "Using environment: ${{ github.event.inputs.env || 'dev' }}"
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -96,62 +121,3 @@ jobs:
             echo "❌ ALB DNS name not found."
             echo "::warning title=ALB not found::Output variable 'alb_dns_name' is empty or undefined."
           fi
-
-  # ------------------------------------------------------------------------------
-  # This Ansible provisioning block is commented out intentionally.
-  # EC2 instances now bootstrap themselves fully via user_data without SSM.
-  # No need to provision via Ansible after Terraform apply.
-  # ------------------------------------------------------------------------------
-
-  # provision:
-  #   name: Ansible Provision via AWS SSM
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
-
-  #   needs: apply
-
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v3
-
-  #     - name: Setup AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ env.AWS_REGION }}
-
-  #     - name: Install Ansible and dependencies
-  #       run: |
-  #         sudo apt update
-  #         sudo apt install -y python3 python3-pip unzip curl
-  #         python3 -m pip install --upgrade pip
-  #         pip install ansible boto3
-  #         ansible-galaxy collection install amazon.aws
-
-  #     - name: Get EC2 Instance ID
-  #       id: get_instance_id
-  #       run: |
-  #         INSTANCE_ID=$(aws ec2 describe-instances \
-  #           --filters "Name=tag:Name,Values=app_server" \
-  #                     "Name=instance-state-name,Values=running" \
-  #           --query "Reservations[0].Instances[0].InstanceId" \
-  #           --output text)
-  #         echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
-
-  #     - name: Run Ansible Playbook via SSM
-  #       run: |
-  #         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-
-  #         ansible-playbook ansible/playbook.yml \
-  #           -i localhost, \
-  #           -e "region=${{ env.AWS_REGION }} account_id=${ACCOUNT_ID} instance_id=${{ steps.get_instance_id.outputs.instance_id }}"
-
-  #     - name: Wait before finishing job (give app time to start)
-  #       run: sleep 60
-
-  #     - name: Show link to application
-  #       run: |
-  #         echo "✅ Link to application:"
-  #         echo "${{ needs.apply.outputs.alb_dns_name }}"
-  #         echo "::notice title=LINK::${{ needs.apply.outputs.alb_dns_name }}"

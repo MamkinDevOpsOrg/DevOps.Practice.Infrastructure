@@ -1,52 +1,3 @@
-# module "lambda_trigger_cpu" {
-#   source = "terraform-aws-modules/lambda/aws"
-
-#   function_name  = "trigger_cpu_load"
-#   handler        = "index.handler"
-#   runtime        = "nodejs20.x"
-#   timeout        = 65
-#   publish        = false
-#   create_package = false
-
-#   s3_existing_package = {
-#     bucket = var.s3_instance_name
-#     key    = "lambda/placeholders/placeholder.zip"
-#   }
-
-
-#   environment_variables = {
-#     TARGET_URL = "http://${module.alb.dns_name}/v1/load/cpu"
-#   }
-
-#   tags = {
-#     Name = "trigger_cpu_load"
-#   }
-# }
-
-# module "lambda_trigger_mem" {
-#   source = "terraform-aws-modules/lambda/aws"
-
-#   function_name  = "trigger_mem_load"
-#   handler        = "index.handler"
-#   runtime        = "nodejs20.x"
-#   timeout        = 65
-#   publish        = false
-#   create_package = false
-
-#   s3_existing_package = {
-#     bucket = var.s3_instance_name
-#     key    = "lambda/placeholders/placeholder.zip"
-#   }
-
-#   environment_variables = {
-#     TARGET_URL = "http://${module.alb.dns_name}/v1/load/mem"
-#   }
-
-#   tags = {
-#     Name = "trigger_mem_load"
-#   }
-# }
-
 resource "aws_iam_role" "lambda_restart_role" {
   name = "lambda-ecr-image-watcher"
 
@@ -99,7 +50,7 @@ resource "aws_iam_role_policy" "lambda_restart_policy" {
 
 data "archive_file" "lambda_ecr_listener_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/modules/lambda_ecr_listener"
+  source_dir  = "${path.module}/lambdas/lambda_ecr_listener"
   output_path = "${path.module}/builds/lambda_ecr_listener.zip"
 }
 
