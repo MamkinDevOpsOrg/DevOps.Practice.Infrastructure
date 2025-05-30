@@ -7,7 +7,7 @@ variable "vpc_cidr_block" {
 }
 
 variable "availability_zones" {
-  default = ["us-west-2a", "us-west-2b"]
+  default = ["us-east-1a", "us-east-1b"]
 }
 
 variable "public_subnet_cidrs" {
@@ -23,7 +23,7 @@ variable "alb_name" {
 }
 
 variable "access_log_bucket" {
-  default = "alb-access-logs-storage-for-mamkindevops-prod-1"
+  default = "alb-access-logs-storage-for-mamkindevops-production"
 }
 
 variable "access_log_prefix" {
@@ -43,7 +43,7 @@ variable "project" {
 }
 
 variable "machine_image" {
-  default = "ami-075686beab831bb7f" # Ubuntu Server 22.04 LTS (HVM), SSD Volume Type — us-west-2
+  default = "ami-0f9de6e2d2f067fca" # Ubuntu Server 22.04 LTS (HVM)
 }
 
 variable "instance_type" {
@@ -51,7 +51,7 @@ variable "instance_type" {
 }
 
 variable "key_pair_name" {
-  default = "devops_practice_prod"
+  default = "devops_practice_prod_us_east_1"
 }
 
 variable "ec2_name_tag" {
@@ -71,7 +71,7 @@ variable "analytics_db_name" {
 }
 
 variable "s3_instance_name" {
-  default = "tfstate-storage-for-mamkindevops-prod-1"
+  default = "tfstate-storage-for-mamkindevops-production"
 }
 
 variable "analytics_db_password" {
@@ -80,5 +80,5 @@ variable "analytics_db_password" {
 }
 
 variable "region" {
-  default = "us-west-2"
+  default = "us-east-1"
 }
