@@ -78,7 +78,14 @@ jobs:
   apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' &&
+        (
+          github.event.inputs.env == 'dev' || 
+          (github.event.inputs.env == 'prod' && github.ref == 'refs/heads/prod')
+        )
+      )
 
     environment:
       name: ${{ github.event.inputs.env || 'dev' }}
