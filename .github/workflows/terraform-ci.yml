@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       env:
-        description: "Target environment"
+        description: 'Target environment'
         required: true
-        default: "dev"
+        default: 'dev'
         type: choice
         options:
           - dev
           - prod
   pull_request:
-    branches: ["main", "prod"]
+    branches: ['main', 'prod']
   push:
-    branches: ["main"]
+    branches: ['main']
 
 permissions:
   contents: read
