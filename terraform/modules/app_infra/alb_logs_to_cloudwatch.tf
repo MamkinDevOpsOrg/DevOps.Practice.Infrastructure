@@ -38,6 +38,7 @@ resource "aws_lambda_permission" "allow_s3_trigger" {
 
 resource "aws_s3_bucket_notification" "alb_logs_to_lambda" {
   bucket = var.access_log_bucket
+  provider = aws
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.forward_logs.arn

@@ -7,9 +7,11 @@ resource "aws_launch_template" "app_server" {
     name = aws_iam_instance_profile.ec2_instance_profile.name
   }
 
-  key_name = var.key_pair_name
+  key_name = var.key_pair_name  
 
-  user_data = filebase64("${path.module}/scripts/user_data_app_server.sh")
+  user_data = base64encode(templatefile("${path.module}/scripts/user_data_app_server.sh", {
+    region = var.region
+  }))
 
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 

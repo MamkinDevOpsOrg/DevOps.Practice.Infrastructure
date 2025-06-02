@@ -19,6 +19,7 @@ resource "aws_lambda_function" "ecr_listener" {
   environment {
     variables = {
       ECR_REPOSITORY = var.ecr_repository_name
+      REGION = var.region
     }
   }
 }

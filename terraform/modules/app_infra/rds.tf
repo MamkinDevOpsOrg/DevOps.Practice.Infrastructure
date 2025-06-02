@@ -50,7 +50,7 @@ resource "aws_db_instance" "analytics_db" {
   db_subnet_group_name   = aws_db_subnet_group.analytics_rds_subnet_group.name
 
   backup_retention_period = 7
-  availability_zone       = "us-west-2a"
+  availability_zone       = "${var.region}a"
 
   tags = {
     Name        = "analytics-db-${var.environment}"
