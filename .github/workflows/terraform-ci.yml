@@ -12,7 +12,7 @@ on:
           - dev
           - prod
   pull_request:
-    branches: ['main']
+    branches: ['main', 'prod']
   push:
     branches: ['main']
 
@@ -21,8 +21,7 @@ permissions:
   pull-requests: write
 
 env:
-  TF_WORKING_DIR: terraform/environments/${{ github.event.inputs.env || 'dev' }}
-  AWS_REGION: us-west-2
+  TF_WORKING_DIR: terraform/environments/${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || (github.base_ref == 'prod' && 'prod' || 'dev') }}
 
 jobs:
   validate_plan:
@@ -31,7 +30,7 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
 
     environment:
-      name: ${{ github.event.inputs.env || 'dev' }}
+      name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || (github.base_ref == 'prod' && 'prod' || 'dev') }}
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -41,7 +40,7 @@ jobs:
     steps:
       - name: Show selected environment
         run: |
-          echo "Using environment: ${{ github.event.inputs.env || 'dev' }}"
+          echo "Using environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || (github.base_ref == 'prod' && 'prod' || 'dev') }}"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -92,7 +91,7 @@ jobs:
     steps:
       - name: Show selected environment
         run: |
-          echo "Using environment: ${{ github.event.inputs.env || 'dev' }}"
+          echo "Using environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || (github.base_ref == 'prod' && 'prod' || 'dev') }}"
 
       - name: Checkout code
         uses: actions/checkout@v3
