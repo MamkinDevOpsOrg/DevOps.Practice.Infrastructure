@@ -68,7 +68,7 @@ echo "✅ AWS CLI installed: $(aws --version)"
 
 # Pull and run container from ECR
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-REGION="us-west-2"
+REGION="${region}"
 REPO="ecr-kapset"
 IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:latest"
 

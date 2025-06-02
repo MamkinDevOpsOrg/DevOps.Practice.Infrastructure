@@ -43,7 +43,7 @@ variable "project" {
 }
 
 variable "machine_image" {
-  default = "ami-075686beab831bb7f" # Ubuntu Server 22.04 LTS (HVM), SSD Volume Type — us-west-2
+  default = "ami-075686beab831bb7f" # Ubuntu Server 22.04 LTS (HVM)
 }
 
 variable "instance_type" {
