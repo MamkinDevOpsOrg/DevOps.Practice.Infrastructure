@@ -59,7 +59,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -no-color > plan.txt
+        run: terraform plan -no-color | tee plan.txt
 
       - name: Post plan as PR comment
         uses: actions/github-script@v6

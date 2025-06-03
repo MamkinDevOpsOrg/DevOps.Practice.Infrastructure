@@ -95,7 +95,7 @@ terraform destroy
 - Once stable, create tag:
 
   ```bash
-  git checkout main # or prod
+  git checkout main
   git pull origin main
   git tag v1.0.1
   git push origin v1.0.1
@@ -108,6 +108,48 @@ terraform destroy
 Rollback? Just redeploy a previous version:
 
 ```text
+env: prod
+version_tag: v1.0.0
+```
+
+---
+
+## 🔀 How to promote a specific version tag (e.g. `v1.0.0`) from `main` to `prod`
+
+Sometimes you want to merge a specific version (tag) to `prod`, without bringing all newer changes from `main`. Here's how to safely do it:
+
+### 1. Switch to the `prod` branch
+
+```bash
+git checkout prod
+git pull origin prod  # make sure your local branch is up-to-date
+```
+
+---
+
+### 2. Merge the **tag**, not the whole `main` branch
+
+```bash
+git merge v1.0.0  # merges the exact state of tag v1.0.0 (snapshot), not the latest main
+```
+
+---
+
+### 3. Resolve conflicts if any (there shouldn't be any if `prod` is behind)
+
+---
+
+### 4. Push the changes to remote `prod` branch
+
+```bash
+git push origin prod
+```
+
+---
+
+✅ Now `prod` contains exactly the version `v1.0.0` you tested. You can safely deploy it via `terraform-apply.yml` with:
+
+```
 env: prod
 version_tag: v1.0.0
 ```
