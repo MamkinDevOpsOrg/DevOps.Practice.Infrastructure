@@ -24,7 +24,7 @@ permissions:
   pull-requests: write
 
 env:
-  TF_WORKING_DIR: terraform/environments/${{ github.event.inputs.env }}
+  TF_WORKING_DIR: terraform/environments/${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || (github.base_ref == 'prod' && 'prod' || 'dev') }}
 
 jobs:
   validate_plan:
