@@ -93,10 +93,14 @@ terraform destroy
 - Changes are merged to `main`
 - Optionally tested on `dev` via manual apply using branch name
 - Once stable, create tag:
+
   ```bash
+  git checkout main # or prod
+  git pull origin main
   git tag v1.0.1
   git push origin v1.0.1
   ```
+
 - Run `terraform-apply.yml` with:
   - `env: dev`, `version_tag: v1.0.1` → deploy to dev
   - then `env: prod`, `version_tag: v1.0.1` → deploy to prod (from `prod` branch only)
