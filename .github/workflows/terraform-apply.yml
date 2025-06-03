@@ -43,6 +43,11 @@ jobs:
       TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version_tag || 'main' }}
+
       - name: Validate version_tag for production
         if: github.event.inputs.env == 'prod'
         run: |
@@ -62,11 +67,6 @@ jobs:
           fi
 
           echo "✅ Tag '${{ github.event.inputs.version_tag }}' found. Continuing deployment."
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.version_tag || 'main' }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
