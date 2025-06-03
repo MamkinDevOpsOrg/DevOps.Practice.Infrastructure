@@ -37,3 +37,6 @@ output "sqs_analytics_queue_arn" {
   description = "SQS Queue ARN for analytics events"
   value       = aws_sqs_queue.analytics_events.arn
 }
+
+
+// comment to test versioned deploy
