@@ -51,10 +51,13 @@ jobs:
             exit 1
           fi
 
-          echo "🔍 Checking if tag '${{ github.event.inputs.version_tag }}' exists in origin..."
+          echo "🔍 Fetching tags..."
+          git fetch --tags
 
-          if ! git ls-remote --tags origin "refs/tags/${{ github.event.inputs.version_tag }}" | grep . > /dev/null; then
-            echo "❌ Tag '${{ github.event.inputs.version_tag }}' not found in remote repository"
+          echo "🔍 Checking if tag '${{ github.event.inputs.version_tag }}' exists locally..."
+
+          if ! git rev-parse "refs/tags/${{ github.event.inputs.version_tag }}" > /dev/null 2>&1; then
+            echo "❌ Tag '${{ github.event.inputs.version_tag }}' not found in local repository"
             exit 1
           fi
 
