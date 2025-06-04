@@ -43,7 +43,7 @@ variable "project" {
 }
 
 variable "machine_image" {
-  default = "ami-0f9de6e2d2f067fca" # Ubuntu Server 22.04 LTS (HVM)
+  default = "ami-084568db4383264d4" # Ubuntu Server 24.04 LTS (HVM)
 }
 
 variable "instance_type" {

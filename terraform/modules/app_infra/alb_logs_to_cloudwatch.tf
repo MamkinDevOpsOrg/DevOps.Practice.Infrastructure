@@ -37,7 +37,7 @@ resource "aws_lambda_permission" "allow_s3_trigger" {
 }
 
 resource "aws_s3_bucket_notification" "alb_logs_to_lambda" {
-  bucket = var.access_log_bucket
+  bucket   = var.access_log_bucket
   provider = aws
 
   lambda_function {

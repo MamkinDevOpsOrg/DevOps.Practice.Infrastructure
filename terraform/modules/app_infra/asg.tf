@@ -7,7 +7,7 @@ resource "aws_launch_template" "app_server" {
     name = aws_iam_instance_profile.ec2_instance_profile.name
   }
 
-  key_name = var.key_pair_name  
+  key_name = var.key_pair_name
 
   user_data = base64encode(templatefile("${path.module}/scripts/user_data_app_server.sh", {
     region = var.region
@@ -54,6 +54,17 @@ resource "aws_autoscaling_group" "app1_asg" {
   lifecycle {
     create_before_destroy = true
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 100
+      checkpoint_delay       = 0
+      checkpoint_percentages = [100]
+    }    
+  }
+
 }
 
 resource "aws_autoscaling_policy" "scale_out" {
