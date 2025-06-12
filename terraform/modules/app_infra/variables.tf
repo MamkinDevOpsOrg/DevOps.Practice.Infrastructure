@@ -103,3 +103,8 @@ variable "region" {
   description = "AWS region"
   type        = string
 }
+
+variable "image_tag" {
+  description = "Docker image tag for app1"
+  type        = string
+}

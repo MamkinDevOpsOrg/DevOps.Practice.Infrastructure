@@ -62,7 +62,7 @@ resource "aws_autoscaling_group" "app1_asg" {
       min_healthy_percentage = 100
       checkpoint_delay       = 0
       checkpoint_percentages = [100]
-    }    
+    }
   }
 
 }

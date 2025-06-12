@@ -26,4 +26,5 @@ module "app" {
   analytics_db_name        = var.analytics_db_name
   s3_instance_name         = var.s3_instance_name
   region                   = var.region
+  image_tag                = var.image_tag
 }

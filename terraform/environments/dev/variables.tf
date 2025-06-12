@@ -82,3 +82,8 @@ variable "analytics_db_password" {
 variable "region" {
   default = "us-west-2"
 }
+
+variable "image_tag" {
+  type        = string
+  description = "Docker image tag for app1 ECS task"
+}

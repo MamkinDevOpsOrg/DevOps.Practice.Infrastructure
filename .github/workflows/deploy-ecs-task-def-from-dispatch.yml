@@ -1,0 +1,54 @@
+name: Deploy ECS task definition from repository_dispatch
+
+on:
+  repository_dispatch:
+    types: [deploy-app1]
+
+jobs:
+  deploy:
+    name: Deploy app1 to ECS via Terraform (not for prod)
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.client_payload.env != 'prod' }}
+
+    environment:
+      name: ${{ github.event.client_payload.env }}
+
+    env:
+      TF_WORKING_DIR: terraform/environments/${{ github.event.client_payload.env }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    steps:
+      - name: Checkout infrastructure repo
+        uses: actions/checkout@v4
+
+      - name: Set AWS region and image tag (fail-safe)
+        run: |
+          echo "IMAGE_TAG=${{ github.event.client_payload.version_tag }}" >> $GITHUB_ENV
+          echo "TF_VAR_image_tag=$IMAGE_TAG" >> $GITHUB_ENV
+
+          if [[ "${{ github.event.client_payload.env }}" == "dev" ]]; then
+            echo "AWS_REGION=us-west-2" >> $GITHUB_ENV
+          else
+            echo "❌ Unsupported environment: ${{ github.event.client_payload.env }}"
+            exit 1
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=$TF_WORKING_DIR init
+
+      - name: Terraform Apply
+        run: terraform -chdir=$TF_WORKING_DIR apply -auto-approve
+
+      - name: Output application URL (if available)
+        run: |
+          if terraform -chdir=$TF_WORKING_DIR output -raw alb_dns_name >/dev/null 2>&1; then
+            ALB_DNS=$(terraform -chdir=$TF_WORKING_DIR output -raw alb_dns_name)
+            echo "::notice title=✅ Application URL::http://${ALB_DNS}"
+          else
+            echo "::notice title=✔️ Applied, but no ALB output found"
+          fi
