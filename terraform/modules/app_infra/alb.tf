@@ -34,7 +34,7 @@ module "alb" {
       name_prefix       = var.target_group_name_prefix
       protocol          = "HTTP"
       port              = 80
-      target_type       = "instance"
+      target_type       = "ip" # 'ip' type is required for Fargate+awsvpc, for EC2 use 'instance' type
       create_attachment = false
     }
   }

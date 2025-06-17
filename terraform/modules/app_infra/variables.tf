@@ -53,23 +53,8 @@ variable "project" {
   description = "Project tag"
 }
 
-variable "machine_image" {
-  description = "AMI ID for EC2 instances"
-  type        = string
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-}
-
 variable "key_pair_name" {
   description = "Name of the SSH key pair"
-  type        = string
-}
-
-variable "ec2_name_tag" {
-  description = "Tag 'Name' for EC2 instances in ASG"
   type        = string
 }
 
@@ -101,5 +86,10 @@ variable "s3_instance_name" {
 
 variable "region" {
   description = "AWS region"
+  type        = string
+}
+
+variable "image_tag" {
+  description = "Docker image tag for app1"
   type        = string
 }

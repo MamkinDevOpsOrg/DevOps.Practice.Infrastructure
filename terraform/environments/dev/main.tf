@@ -16,14 +16,12 @@ module "app" {
   target_group_name_prefix = var.target_group_name_prefix
   environment              = var.environment
   project                  = var.project
-  machine_image            = var.machine_image
-  instance_type            = var.instance_type
   key_pair_name            = var.key_pair_name
-  ec2_name_tag             = var.ec2_name_tag
   ecr_repository_name      = var.ecr_repository_name
   analytics_db_username    = var.analytics_db_username
   analytics_db_password    = var.analytics_db_password
   analytics_db_name        = var.analytics_db_name
   s3_instance_name         = var.s3_instance_name
   region                   = var.region
+  image_tag                = var.image_tag
 }

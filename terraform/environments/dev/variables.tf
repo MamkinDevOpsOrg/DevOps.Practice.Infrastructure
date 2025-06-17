@@ -42,20 +42,8 @@ variable "project" {
   default = "app1-dev"
 }
 
-variable "machine_image" {
-  default = "ami-075686beab831bb7f" # Ubuntu Server 22.04 LTS (HVM)
-}
-
-variable "instance_type" {
-  default = "t3.micro"
-}
-
 variable "key_pair_name" {
   default = "devops_practice"
-}
-
-variable "ec2_name_tag" {
-  default = "app1-asg-instance-dev"
 }
 
 variable "ecr_repository_name" {
@@ -81,4 +69,10 @@ variable "analytics_db_password" {
 
 variable "region" {
   default = "us-west-2"
+}
+
+variable "image_tag" {
+  type        = string
+  description = "Docker image tag for app1 ECS task"
+  default     = "dev-latest"
 }

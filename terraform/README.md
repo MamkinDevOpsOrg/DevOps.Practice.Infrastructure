@@ -9,12 +9,14 @@ This project manages AWS infrastructure using Terraform across multiple isolated
 - Fully modularized infrastructure (`terraform/modules`)
 - Dedicated environments: `terraform/environments/dev` and `prod`
 - Remote state stored in S3 per environment
-- CI/CD via **two separate GitHub Actions**:
+- CI/CD via GitHub Actions:
   - `terraform-plan.yml`: validation and plan (on PR or manually)
-  - `terraform-apply.yml`: apply infrastructure (manual, by version)
+  - `terraform-apply.yml`: manual apply (by version)
+  - `deploy-ecs-task-def-from-dispatch.yml`: auto-deploy ECS (only for `dev`)
 - Controlled deployment via Git tags (e.g. `v1.0.2`)
 - Safe manual promotion from `dev` to `prod`
 - Reproducible and rollback-friendly versioning
+- ECS Fargate integration with ALB and dynamic image updates
 
 ---
 
@@ -50,7 +52,7 @@ terraform apply
 cd terraform/environments/dev         # or prod
 terraform init
 terraform plan
-terraform apply
+terraform apply -var="image_tag=v1.0.1"
 ```
 
 Override variables (e.g. secrets):
@@ -86,6 +88,16 @@ terraform destroy
 - Requires Git **tag** for `prod` (e.g. `v1.0.1`)
 - Verifies that tag exists in the remote repo before applying
 
+### ⚙️ `deploy-ecs-task-def-from-dispatch.yml`
+
+- Triggered via `repository_dispatch` from `DevOps.Practice.Applications`
+- Accepts:
+  - `env` (only `dev` is allowed)
+  - `version_tag` (Docker image tag)
+- Sets `TF_VAR_image_tag` and runs `terraform apply`
+- Hardcoded block prevents deploy to `prod` or unsupported envs
+- Used for **automated ECS task updates in `dev` only**
+
 ---
 
 ## Versioning Strategy
@@ -94,12 +106,12 @@ terraform destroy
 - Optionally tested on `dev` via manual apply using branch name
 - Once stable, create tag:
 
-  ```bash
-  git checkout main
-  git pull origin main
-  git tag v1.0.1
-  git push origin v1.0.1
-  ```
+```bash
+git checkout main
+git pull origin main
+git tag v1.0.1
+git push origin v1.0.1
+```
 
 - Run `terraform-apply.yml` with:
   - `env: dev`, `version_tag: v1.0.1` → deploy to dev
@@ -107,7 +119,7 @@ terraform destroy
 
 Rollback? Just redeploy a previous version:
 
-```text
+```
 env: prod
 version_tag: v1.0.0
 ```
@@ -161,3 +173,4 @@ version_tag: v1.0.0
 - Direct auto-apply on `push` is disabled
 - Production deployments require manual approval + version tag
 - `main` branch is used as staging for `dev`, `prod` is protected
+- Only `dev` supports automatic ECS task definition updates
