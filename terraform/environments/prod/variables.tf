@@ -42,20 +42,8 @@ variable "project" {
   default = "app1-prod"
 }
 
-variable "machine_image" {
-  default = "ami-084568db4383264d4" # Ubuntu Server 24.04 LTS (HVM)
-}
-
-variable "instance_type" {
-  default = "t3.micro"
-}
-
 variable "key_pair_name" {
   default = "devops_practice_prod_us_east_1"
-}
-
-variable "ec2_name_tag" {
-  default = "app1-asg-instance-prod"
 }
 
 variable "ecr_repository_name" {

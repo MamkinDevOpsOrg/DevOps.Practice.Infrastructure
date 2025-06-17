@@ -184,3 +184,40 @@ resource "aws_lambda_event_source_mapping" "analytics_sqs_trigger" {
   # while `batching_window` gives Lambda time to collect more messages before triggering.
   # This reduces invocation count, improves processing efficiency, and minimizes DB load by handling more messages per execution.
 }
+
+# ----------------------------------------------------------------------------
+# Analytics Stats Lambda
+# ----------------------------------------------------------------------------
+resource "aws_lambda_function" "analytics_stats_lambda" {
+  function_name = "analytics-stats-${var.environment}"
+
+  s3_bucket = var.s3_instance_name
+  s3_key    = "lambda/placeholders/placeholder.zip"
+
+  handler     = "index.handler"
+  runtime     = "nodejs20.x"
+  timeout     = 30
+  memory_size = 512
+  publish     = false
+
+  role = aws_iam_role.analytics_lambda_role.arn
+
+  vpc_config {
+    subnet_ids         = module.vpc.private_subnets
+    security_group_ids = [aws_security_group.lambda_db_sg.id]
+  }
+
+  environment {
+    variables = {
+      DB_HOST     = aws_db_instance.analytics_db.address
+      DB_NAME     = var.analytics_db_name
+      DB_USER     = var.analytics_db_username
+      DB_PASSWORD = var.analytics_db_password
+    }
+  }
+
+  tags = {
+    Name        = "analytics-stats-${var.environment}"
+    Environment = var.environment
+  }
+}

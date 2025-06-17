@@ -18,6 +18,10 @@ output "analytics_api_url" {
   value = module.app.analytics_api_url
 }
 
+output "analytics_stats_api_url" {
+  value = module.app.analytics_stats_api_url
+}
+
 output "analytics_db_init_api_url" {
   value = module.app.analytics_db_init_api_url
 }

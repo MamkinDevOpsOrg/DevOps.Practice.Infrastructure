@@ -24,6 +24,10 @@ resource "aws_ecs_task_definition" "app1" {
         {
           name  = "ENV"
           value = var.environment
+        },
+        {
+          name  = "ANALYTICS_STATS_URL"
+          value = "http://${aws_api_gateway_rest_api.analytics_api.id}.execute-api.${var.region}.amazonaws.com/${var.environment}/analytics-stats"
         }
       ]
     }
