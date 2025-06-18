@@ -20,6 +20,7 @@ permissions:
 
 env:
   TF_WORKING_DIR: terraform/environments/${{ github.event.inputs.env }}
+  TF_VAR_image_tag: ''
 
 jobs:
   apply:
@@ -70,6 +71,47 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Determine Docker image tag
+        run: |
+          if [[ "${{ github.event.inputs.env }}" == "prod" ]]; then
+            if [[ -z "${{ github.event.inputs.version_tag }}" ]]; then
+              echo "❌ version_tag is required for production deployments"
+              exit 1
+            fi
+            echo "TF_VAR_image_tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_ENV
+
+            echo "🔍 Checking if Docker image with tag '${{ github.event.inputs.version_tag }}' exists in ECR..."
+            REGION="us-east-1"
+            REPO="ecr-kapset-prod"
+            IMAGE_EXISTS=$(aws ecr describe-images \
+              --region $REGION \
+              --repository-name $REPO \
+              --query "imageDetails[?contains(imageTags, '${{ github.event.inputs.version_tag }}')]" \
+              --output text)
+
+            if [ -z "$IMAGE_EXISTS" ]; then
+              echo "❌ Image tag '${{ github.event.inputs.version_tag }}' not found in $REPO"
+              exit 1
+            fi
+            echo "✅ Image tag exists: ${{ github.event.inputs.version_tag }}"
+
+          else            
+            if [[ -n "${{ github.event.inputs.version_tag }}" ]]; then
+              echo "TF_VAR_image_tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_ENV
+              echo "✅ Using provided tag for dev: ${{ github.event.inputs.version_tag }}"
+            else
+              echo "ℹ️ No version_tag provided — fetching latest from SSM..."
+              REGION="us-west-2"
+              VALUE=$(aws ssm get-parameter --name "/app1/dev/image_tag" --region $REGION --query "Parameter.Value" --output text)
+              if [[ -z "$VALUE" ]]; then
+                echo "❌ Could not fetch dev image tag from SSM"
+                exit 1
+              fi
+              echo "TF_VAR_image_tag=$VALUE" >> $GITHUB_ENV
+              echo "✅ Using tag from SSM: $VALUE"
+            fi
+          fi
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
