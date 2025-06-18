@@ -11,8 +11,13 @@ on:
         options:
           - dev
           - prod
-      version_tag:
-        description: 'Git tag or branch name (e.g. v1.0.2 or main)'
+
+      infra_version:
+        description: 'Git tag or branch name for infrastructure (e.g. main or v1.0.0-infra)'
+        required: false
+
+      image_tag:
+        description: 'Docker image tag to deploy (e.g. v1.0.3 or v1.0.3-rc)'
         required: false
 
 permissions:
@@ -44,30 +49,30 @@ jobs:
       TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout infrastructure code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.version_tag || 'main' }}
+          ref: ${{ github.event.inputs.infra_version || 'main' }}
 
-      - name: Validate version_tag for production
+      - name: Validate infra_version for production
         if: github.event.inputs.env == 'prod'
         run: |
-          if [ -z "${{ github.event.inputs.version_tag }}" ]; then
-            echo "❌ version_tag is required for production deployments"
+          if [ -z "${{ github.event.inputs.infra_version }}" ]; then
+            echo "❌ infra_version is required for production deployments"
             exit 1
           fi
 
           echo "🔍 Fetching tags..."
           git fetch --tags
 
-          echo "🔍 Checking if tag '${{ github.event.inputs.version_tag }}' exists locally..."
+          echo "🔍 Checking if tag '${{ github.event.inputs.infra_version }}' exists locally..."
 
-          if ! git rev-parse "refs/tags/${{ github.event.inputs.version_tag }}" > /dev/null 2>&1; then
-            echo "❌ Tag '${{ github.event.inputs.version_tag }}' not found in local repository"
+          if ! git rev-parse "refs/tags/${{ github.event.inputs.infra_version }}" > /dev/null 2>&1; then
+            echo "❌ Tag '${{ github.event.inputs.infra_version }}' not found in local repository"
             exit 1
           fi
 
-          echo "✅ Tag '${{ github.event.inputs.version_tag }}' found. Continuing deployment."
+          echo "✅ Tag '${{ github.event.inputs.infra_version }}' found. Continuing deployment."
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -75,33 +80,33 @@ jobs:
       - name: Determine Docker image tag
         run: |
           if [[ "${{ github.event.inputs.env }}" == "prod" ]]; then
-            if [[ -z "${{ github.event.inputs.version_tag }}" ]]; then
-              echo "❌ version_tag is required for production deployments"
+            if [[ -z "${{ github.event.inputs.image_tag }}" ]]; then
+              echo "❌ image_tag is required for production deployments"
               exit 1
             fi
-            echo "TF_VAR_image_tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_ENV
+            echo "TF_VAR_image_tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
 
-            echo "🔍 Checking if Docker image with tag '${{ github.event.inputs.version_tag }}' exists in ECR..."
+            echo "🔍 Checking if Docker image with tag '${{ github.event.inputs.image_tag }}' exists in ECR..."
             REGION="us-east-1"
             REPO="ecr-kapset-prod"
             IMAGE_EXISTS=$(aws ecr describe-images \
               --region $REGION \
               --repository-name $REPO \
-              --query "imageDetails[?contains(imageTags, '${{ github.event.inputs.version_tag }}')]" \
+              --query "imageDetails[?contains(imageTags, '${{ github.event.inputs.image_tag }}')]" \
               --output text)
 
             if [ -z "$IMAGE_EXISTS" ]; then
-              echo "❌ Image tag '${{ github.event.inputs.version_tag }}' not found in $REPO"
+              echo "❌ Image tag '${{ github.event.inputs.image_tag }}' not found in $REPO"
               exit 1
             fi
-            echo "✅ Image tag exists: ${{ github.event.inputs.version_tag }}"
+            echo "✅ Image tag exists: ${{ github.event.inputs.image_tag }}"
 
-          else            
-            if [[ -n "${{ github.event.inputs.version_tag }}" ]]; then
-              echo "TF_VAR_image_tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_ENV
-              echo "✅ Using provided tag for dev: ${{ github.event.inputs.version_tag }}"
+          else
+            if [[ -n "${{ github.event.inputs.image_tag }}" ]]; then
+              echo "TF_VAR_image_tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+              echo "✅ Using provided tag for dev: ${{ github.event.inputs.image_tag }}"
             else
-              echo "ℹ️ No version_tag provided — fetching latest from SSM..."
+              echo "ℹ️ No image_tag provided — fetching latest from SSM..."
               REGION="us-west-2"
               VALUE=$(aws ssm get-parameter --name "/app1/dev/image_tag" --region $REGION --query "Parameter.Value" --output text)
               if [[ -z "$VALUE" ]]; then
