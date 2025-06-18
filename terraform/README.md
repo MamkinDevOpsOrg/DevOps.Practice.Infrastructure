@@ -11,12 +11,10 @@ This project manages AWS infrastructure using Terraform across multiple isolated
 - Remote state stored in S3 per environment
 - CI/CD via GitHub Actions:
   - `terraform-plan.yml`: validation and plan (on PR or manually)
-  - `terraform-apply.yml`: manual apply (by version)
-  - `deploy-ecs-task-def-from-dispatch.yml`: auto-deploy ECS (only for `dev`)
-- Controlled deployment via Git tags (e.g. `v1.0.2`)
+  - `terraform-apply.yml`: manual apply with flexible image tag resolution
+- Controlled deployment via Git tags
 - Safe manual promotion from `dev` to `prod`
-- Reproducible and rollback-friendly versioning
-- ECS Fargate integration with ALB and dynamic image updates
+- ECS Fargate integration with ALB and Docker image tag management via AWS SSM
 
 ---
 
@@ -83,45 +81,43 @@ terraform destroy
 
 ### 🚀 `terraform-apply.yml`
 
-- Triggered manually only via **workflow_dispatch**
-- Deploys selected version to target environment (`dev` or `prod`)
-- Requires Git **tag** for `prod` (e.g. `v1.0.1`)
-- Verifies that tag exists in the remote repo before applying
-
-### ⚙️ `deploy-ecs-task-def-from-dispatch.yml`
-
-- Triggered via `repository_dispatch` from `DevOps.Practice.Applications`
-- Accepts:
-  - `env` (only `dev` is allowed)
-  - `version_tag` (Docker image tag)
-- Sets `TF_VAR_image_tag` and runs `terraform apply`
-- Hardcoded block prevents deploy to `prod` or unsupported envs
-- Used for **automated ECS task updates in `dev` only**
+- Triggered manually via **workflow_dispatch**
+- Deploys selected infrastructure version and Docker image
+- Inputs:
+  - `env`: `dev` or `prod`
+  - `infra_version`: Git branch or tag to deploy from
+  - `image_tag`:
+    - optional for `dev` — auto-resolves from SSM if omitted
+    - required for `prod` — validated against ECR
+- Verifies Git tag existence (for `prod`)
+- Verifies ECR image existence (for `prod`)
+- Passes `image_tag` into Terraform as `TF_VAR_image_tag`
 
 ---
 
 ## Versioning Strategy
 
 - Changes are merged to `main`
-- Optionally tested on `dev` via manual apply using branch name
+- Optionally tested on `dev` via manual apply using branch or SSM tag
 - Once stable, create tag:
 
 ```bash
 git checkout main
 git pull origin main
-git tag v1.0.1
-git push origin v1.0.1
+git tag v1.0.1-infra
+git push origin v1.0.1-infra
 ```
 
 - Run `terraform-apply.yml` with:
-  - `env: dev`, `version_tag: v1.0.1` → deploy to dev
-  - then `env: prod`, `version_tag: v1.0.1` → deploy to prod (from `prod` branch only)
+  - `env: dev`, `infra_version: main`, `image_tag: optional`
+  - then `env: prod`, `infra_version: v1.0.1-infra`, `image_tag: v1.0.1`
 
 Rollback? Just redeploy a previous version:
 
 ```
 env: prod
-version_tag: v1.0.0
+infra_version: v1.0.0-infra
+image_tag: v1.0.0
 ```
 
 ---
@@ -142,7 +138,7 @@ git pull origin prod  # make sure your local branch is up-to-date
 ### 2. Merge the **tag**, not the whole `main` branch
 
 ```bash
-git merge v1.0.0  # merges the exact state of tag v1.0.0 (snapshot), not the latest main
+git merge v1.0.0-infra
 ```
 
 ---
@@ -159,11 +155,12 @@ git push origin prod
 
 ---
 
-✅ Now `prod` contains exactly the version `v1.0.0` you tested. You can safely deploy it via `terraform-apply.yml` with:
+✅ Now `prod` contains exactly the version `v1.0.0-infra` you tested. You can safely deploy it via `terraform-apply.yml` with:
 
 ```
 env: prod
-version_tag: v1.0.0
+infra_version: v1.0.0-infra
+image_tag: v1.0.0
 ```
 
 ---
@@ -171,6 +168,6 @@ version_tag: v1.0.0
 ## Notes
 
 - Direct auto-apply on `push` is disabled
-- Production deployments require manual approval + version tag
+- Production deployments require manual approval + image version
 - `main` branch is used as staging for `dev`, `prod` is protected
-- Only `dev` supports automatic ECS task definition updates
+- Docker tag resolution is automatic for `dev` via AWS SSM
