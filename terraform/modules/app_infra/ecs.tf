@@ -9,6 +9,8 @@ resource "aws_ecs_task_definition" "app1" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task_runtime.arn
+
 
   container_definitions = jsonencode([
     {
