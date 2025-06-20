@@ -159,7 +159,7 @@ jobs:
             --name "/app1/dev/infra_version" \
             --type String \
             --overwrite \
-            --value "$GIT_REF"
+            --value "${{ env.GIT_REF }}" \
             --region us-west-2
 
       - name: Show link to application
