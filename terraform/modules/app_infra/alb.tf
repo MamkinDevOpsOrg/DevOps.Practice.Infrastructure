@@ -36,6 +36,18 @@ module "alb" {
       port              = 80
       target_type       = "ip" # 'ip' type is required for Fargate+awsvpc, for EC2 use 'instance' type
       create_attachment = false
+
+      health_check = {
+        enabled             = true
+        path                = "/v1/friends"
+        port                = "traffic-port"
+        protocol            = "HTTP"
+        matcher             = "200"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+      }
     }
   }
 
