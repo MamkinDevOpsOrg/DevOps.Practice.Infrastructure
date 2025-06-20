@@ -160,6 +160,7 @@ jobs:
             --type String \
             --overwrite \
             --value "$GIT_REF"
+            --region us-west-2
 
       - name: Show link to application
         working-directory: ${{ env.TF_WORKING_DIR }}
