@@ -26,6 +26,7 @@ permissions:
 env:
   TF_WORKING_DIR: terraform/environments/${{ github.event.inputs.env }}
   TF_VAR_image_tag: ''
+  GIT_REF: ''
 
 jobs:
   apply:
@@ -49,10 +50,35 @@ jobs:
       TF_VAR_analytics_db_password: ${{ secrets.DB_ANALYTICS_PASSWORD }}
 
     steps:
+      - name: Determine infrastructure version
+        if: github.event.inputs.env == 'dev' && github.event.inputs.infra_version == ''
+        run: |
+          echo "ℹ️ No infra_version provided — fetching latest from SSM..."
+          REGION="us-west-2"
+          VALUE=$(aws ssm get-parameter \
+            --name "/app1/dev/infra_version" \
+            --region $REGION \
+            --query "Parameter.Value" \
+            --output text)
+
+          if [[ -z "$VALUE" ]]; then
+            echo "❌ Could not fetch dev infra version from SSM"
+            exit 1
+          fi
+
+          echo "GIT_REF=$VALUE" >> $GITHUB_ENV
+          echo "✅ Using infra version from SSM: $VALUE"
+
+      - name: Use provided infra_version
+        if: github.event.inputs.infra_version != ''
+        run: |
+          echo "GIT_REF=${{ github.event.inputs.infra_version }}" >> $GITHUB_ENV
+          echo "✅ Using manually specified infra version: $GIT_REF"
+
       - name: Checkout infrastructure code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.infra_version || 'main' }}
+          ref: ${{ env.GIT_REF }}
 
       - name: Validate infra_version for production
         if: github.event.inputs.env == 'prod'
@@ -125,6 +151,15 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
+
+      - name: Save applied infra version to SSM (dev only)
+        if: github.event.inputs.env == 'dev'
+        run: |
+          aws ssm put-parameter \
+            --name "/app1/dev/infra_version" \
+            --type String \
+            --overwrite \
+            --value "$GIT_REF"
 
       - name: Show link to application
         working-directory: ${{ env.TF_WORKING_DIR }}
